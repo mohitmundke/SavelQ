@@ -1,0 +1,2394 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaveIQ – AI Savings Goal Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Inline Fallback & Apps Script compatibility */
+    /* ==========================================================================
+   SaveIQ – AI Savings Goal Tracker
+   Modern Glassmorphism UI & High-Fidelity Design System
+   ========================================================================== */
+
+:root {
+  /* Color Palette */
+  --bg-primary: #090d16;
+  --bg-secondary: #0f172a;
+  --bg-card: rgba(18, 24, 38, 0.7);
+  --bg-card-hover: rgba(26, 34, 52, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+
+  --accent-cyan: #38bdf8;
+  --accent-blue: #3b82f6;
+  --accent-indigo: #6366f1;
+  --accent-purple: #a855f7;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+
+  /* Typography */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Elevation & Shadows */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 25px rgba(56, 189, 248, 0.25);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+  --bg-primary: #f1f5f9;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --bg-glass: rgba(0, 0, 0, 0.02);
+  --border-glass: rgba(0, 0, 0, 0.08);
+  --border-focus: #0284c7;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #94a3b8;
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 20px rgba(2, 132, 199, 0.15);
+}
+
+/* Reset & Global */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Container */
+.container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 20px 80px 20px;
+}
+
+/* Header & Navigation */
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #0284c7, #6366f1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+}
+
+.brand-text h1 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-text span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+}
+
+.btn-secondary {
+  background: var(--bg-glass);
+  color: var(--text-main);
+  border: 1px solid var(--border-glass);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+}
+
+/* KPI Analytics Section */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 20px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpi-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.kpi-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.kpi-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Accent Glows for KPI Cards */
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+}
+
+.kpi-target::before { background: linear-gradient(90deg, #38bdf8, #818cf8); }
+.kpi-saved::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.kpi-progress::before { background: linear-gradient(90deg, #a855f7, #ec4899); }
+.kpi-active::before { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+.kpi-completed::before { background: linear-gradient(90deg, #10b981, #84cc16); }
+.kpi-overdue::before { background: linear-gradient(90deg, #f43f5e, #f59e0b); }
+
+/* Dashboard Toolbar & Filter Section */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-glass);
+  background: var(--bg-glass);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #0284c7, #6366f1);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+}
+
+.search-box {
+  position: relative;
+  min-width: 240px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 14px 8px 36px;
+  font-size: 13px;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.search-input:focus {
+  border-color: var(--border-focus);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+/* Goals Grid */
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 22px;
+}
+
+/* Goal Card */
+.goal-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+.goal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+.goal-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.goal-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goal-emoji {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.goal-title-wrap h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.goal-category-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Status Badges */
+.status-pill {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-pill.active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-pill.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pill.overdue {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+/* Progress Section in Card */
+.progress-container {
+  margin: 16px 0;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+
+.saved-label {
+  font-size: 20px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.target-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.percentage-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-fill.completed {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.progress-fill.overdue {
+  background: linear-gradient(90deg, #f43f5e, #fb923c);
+}
+
+/* Goal Details Stats Row */
+.goal-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.metric-item {
+  font-size: 11px;
+}
+
+.metric-item .lbl {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.metric-item .val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Card Actions */
+.goal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-glass);
+}
+
+.btn-deposit {
+  flex: 1;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-deposit:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #ffffff;
+}
+
+.btn-ai {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(99, 102, 241, 0.15));
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-ai:hover {
+  background: linear-gradient(135deg, #a855f7, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+}
+
+.btn-delete {
+  padding: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-delete:hover {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+/* Empty State */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  border: 1px dashed var(--border-glass);
+  border-radius: var(--radius-lg);
+}
+
+.empty-icon {
+  font-size: 54px;
+  margin-bottom: 16px;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 440px;
+  margin: 0 auto 24px auto;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.95) translateY(10px);
+  transition: transform var(--transition-normal);
+  padding: 28px;
+  position: relative;
+}
+
+.modal-overlay.active .modal-content {
+  transform: scale(1) translateY(0);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color var(--transition-fast);
+}
+
+.modal-close:hover {
+  color: var(--text-main);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* Quick Deposit Preset Chips */
+.preset-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.preset-chip {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.preset-chip:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+/* AI Insights View */
+.ai-modal-content {
+  max-width: 680px;
+}
+
+.ai-output-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e2e8f0;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.ai-output-box h3 {
+  font-size: 16px;
+  color: #38bdf8;
+  margin: 18px 0 8px 0;
+}
+
+.ai-output-box h3:first-child {
+  margin-top: 0;
+}
+
+.ai-output-box p {
+  margin-bottom: 12px;
+}
+
+.ai-output-box ul, .ai-output-box ol {
+  margin: 8px 0 16px 20px;
+}
+
+.ai-output-box li {
+  margin-bottom: 6px;
+}
+
+.ai-output-box strong {
+  color: #ffffff;
+}
+
+.ai-badge-source {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+/* Loading Spinner */
+.spinner-wrap {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(56, 189, 248, 0.15);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2000;
+}
+
+.toast {
+  background: #1e293b;
+  border: 1px solid var(--border-glass);
+  border-left: 4px solid #38bdf8;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  max-width: 400px;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast.success { border-left-color: #10b981; }
+.toast.error { border-left-color: #f43f5e; }
+.toast.warning { border-left-color: #f59e0b; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Print Optimization for PDF Reports */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .header-nav, .toolbar, .goal-actions, .btn, .modal-overlay {
+    display: none !important;
+  }
+  .kpi-card, .goal-card {
+    border: 1px solid #cccccc !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  .saved-label, .kpi-val {
+    color: #000000 !important;
+  }
+}
+
+/* Mobile & Tablet Responsive */
+@media (max-width: 768px) {
+  .header-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .nav-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-box {
+    width: 100%;
+  }
+  .goals-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Navigation & Brand Header -->
+    <header class="header-nav">
+      <a href="#" class="brand">
+        <div class="brand-icon">💎</div>
+        <div class="brand-text">
+          <h1>SaveIQ</h1>
+          <span>AI Savings Goal Tracker</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary btn-sm" onclick="exportGoalsCSV()" title="Export CSV Report">
+          📥 CSV
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="printFinancialReport()" title="Print / PDF Report">
+          🖨️ Print / PDF
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="runManualAudit()" title="Trigger Automated Daily Audit">
+          ⏰ Audit
+        </button>
+        <button class="btn-icon" onclick="openSettingsModal()" title="Settings & Groq API Key">
+          ⚙️
+        </button>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+          + New Goal
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI Analytics Metrics -->
+    <section class="kpi-grid">
+      <!-- Total Target -->
+      <div class="kpi-card kpi-target">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Target</span>
+          <div class="kpi-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">🎯</div>
+        </div>
+        <div class="kpi-val" id="kpiTotalTarget">$0</div>
+        <div class="kpi-sub" id="kpiRemainingLabel">$0 left to fund</div>
+      </div>
+
+      <!-- Total Saved -->
+      <div class="kpi-card kpi-saved">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Saved</span>
+          <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">💰</div>
+        </div>
+        <div class="kpi-val" id="kpiTotalSaved" style="color: #34d399;">$0</div>
+        <div class="kpi-sub">Across all savings goals</div>
+      </div>
+
+      <!-- Overall Progress -->
+      <div class="kpi-card kpi-progress">
+        <div class="kpi-header">
+          <span class="kpi-title">Overall Progress</span>
+          <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">📊</div>
+        </div>
+        <div class="kpi-val" id="kpiOverallProgress" style="color: #c084fc;">0%</div>
+        <div class="kpi-sub">Aggregate portfolio completion</div>
+      </div>
+
+      <!-- Active Goals -->
+      <div class="kpi-card kpi-active">
+        <div class="kpi-header">
+          <span class="kpi-title">Active Goals</span>
+          <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">⏳</div>
+        </div>
+        <div class="kpi-val" id="kpiActiveGoals" style="color: #60a5fa;">0</div>
+        <div class="kpi-sub">Currently accumulating</div>
+      </div>
+
+      <!-- Completed Goals -->
+      <div class="kpi-card kpi-completed">
+        <div class="kpi-header">
+          <span class="kpi-title">Completed</span>
+          <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🏆</div>
+        </div>
+        <div class="kpi-val" id="kpiCompletedGoals" style="color: #10b981;">0</div>
+        <div class="kpi-sub">Target achieved 100%</div>
+      </div>
+
+      <!-- Overdue Goals -->
+      <div class="kpi-card kpi-overdue">
+        <div class="kpi-header">
+          <span class="kpi-title">Overdue / At Risk</span>
+          <div class="kpi-icon" style="background: rgba(244, 63, 94, 0.15); color: #fb7185;">⚠️</div>
+        </div>
+        <div class="kpi-val" id="kpiOverdueGoals" style="color: #fb7185;">0</div>
+        <div class="kpi-sub">Past target deadline</div>
+      </div>
+    </section>
+
+    <!-- Dashboard Toolbar, Filters & Search -->
+    <section class="toolbar">
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All Goals</button>
+        <button class="filter-btn" data-filter="active">Active</button>
+        <button class="filter-btn" data-filter="completed">Completed</button>
+        <button class="filter-btn" data-filter="overdue">Overdue</button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchGoalInput" class="search-input" placeholder="Search goal or purpose...">
+        </div>
+
+        <select id="sortGoalSelect" class="form-select" style="width: auto; padding: 8px 12px; font-size: 13px;">
+          <option value="deadline">Sort: Deadline (Nearest)</option>
+          <option value="progress">Sort: Progress (%)</option>
+          <option value="target">Sort: Target Amount (High-Low)</option>
+          <option value="saved">Sort: Saved Amount (High-Low)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Goals Grid Container -->
+    <main class="goals-grid" id="goalsGrid">
+      <!-- Dynamic Goal Cards Rendered Here via script.js -->
+    </main>
+
+    <!-- Footer -->
+    <footer style="margin-top: 60px; text-align: center; font-size: 12px; color: var(--text-dim);">
+      SaveIQ – AI-Powered Personal Finance & Savings Discipline Management System<br>
+      Google Apps Script • Google Sheets Database • Groq AI (Llama-3.3-70B) • Gmail Services
+    </footer>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODALS -->
+  <!-- ============================================================== -->
+
+  <!-- Modal 1: Create New Savings Goal -->
+  <div class="modal-overlay" id="createGoalModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>🎯</span> Create Savings Goal</h2>
+        <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+      </div>
+
+      <form id="createGoalForm">
+        <div class="form-group">
+          <label class="form-label" for="goalName">Goal Name *</label>
+          <input type="text" id="goalName" class="form-input" placeholder="e.g. M3 MacBook Pro, Emergency Fund" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="goalTarget">Target Amount ($) *</label>
+            <input type="number" id="goalTarget" class="form-input" min="1" step="0.01" placeholder="2500" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="goalInitial">Initial Savings ($)</label>
+            <input type="number" id="goalInitial" class="form-input" min="0" step="0.01" placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="goalDeadline">Target Deadline *</label>
+            <input type="date" id="goalDeadline" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="goalPurpose">Category / Purpose *</label>
+            <select id="goalPurpose" class="form-select" required>
+              <option value="Tech & Gadgets">💻 Tech & Gadgets</option>
+              <option value="Emergency Fund">🛡️ Emergency Fund</option>
+              <option value="Vacation & Travel">✈️ Vacation & Travel</option>
+              <option value="Vehicle & Transport">🚗 Vehicle & Transport</option>
+              <option value="Home & Real Estate">🏡 Home & Real Estate</option>
+              <option value="Education & Career">🎓 Education & Career</option>
+              <option value="Investment & Wealth">📈 Investment & Wealth</option>
+              <option value="Health & Wellness">❤️ Health & Wellness</option>
+              <option value="Shopping & Luxury">🛍️ Shopping & Luxury</option>
+              <option value="General Savings" selected>💰 General Savings</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="goalEmail">Alert & Notification Email</label>
+          <input type="email" id="goalEmail" class="form-input" placeholder="your-email@gmail.com">
+          <div class="form-hint">Used for automated deadline audits and Gmail reminders.</div>
+        </div>
+
+        <!-- Live Plan Velocity Preview -->
+        <div id="formPacingPreview" style="display: none; background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; padding: 12px; border-radius: 8px; font-size: 13px; color: #cbd5e1; margin-bottom: 18px;">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitGoal">Create Savings Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add Savings Deposit -->
+  <div class="modal-overlay" id="depositModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>💵</span> Deposit Contribution</h2>
+        <button class="modal-close" onclick="closeDepositModal()">&times;</button>
+      </div>
+
+      <form id="depositForm">
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 4px;">
+          Adding funds to: <strong id="depositGoalName" style="color: var(--text-main);">Goal Name</strong>
+        </p>
+        <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 18px;">
+          Remaining balance: <strong id="depositGoalRemaining" style="color: #f87171;">$0</strong>
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="depositAmountInput">Deposit Amount ($) *</label>
+          <input type="number" id="depositAmountInput" class="form-input" min="1" step="0.01" placeholder="Enter amount" required autofocus>
+          
+          <div class="preset-chips">
+            <button type="button" class="preset-chip" onclick="setPresetDeposit(10)">+$10</button>
+            <button type="button" class="preset-chip" onclick="setPresetDeposit(25)">+$25</button>
+            <button type="button" class="preset-chip" onclick="setPresetDeposit(50)">+$50</button>
+            <button type="button" class="preset-chip" onclick="setPresetDeposit(100)">+$100</button>
+            <button type="button" class="preset-chip" onclick="setPresetDeposit(250)">+$250</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeDepositModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnConfirmDeposit">Deposit Contribution</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: AI Financial Insights & Advice -->
+  <div class="modal-overlay" id="aiModal">
+    <div class="modal-content ai-modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>✨</span> AI Financial Advisor</h2>
+        <button class="modal-close" onclick="closeAIModal()">&times;</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span style="font-size: 14px; color: var(--text-muted);">
+          Goal: <strong id="aiGoalTitle" style="color: var(--text-main);"></strong>
+        </span>
+        <span class="ai-badge-source" id="aiSourceBadge">Groq Cloud (Llama-3.3-70B)</span>
+      </div>
+
+      <div class="ai-output-box" id="aiContentBox">
+        <!-- Rendered AI Advice -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" onclick="copyAIAdvice()">📋 Copy Insights</button>
+        <button type="button" class="btn btn-primary" onclick="closeAIModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Settings & Groq API Key -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title"><span>⚙️</span> System Settings</h2>
+        <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="groqApiKeyInput">Groq Cloud API Key</label>
+        <input type="password" id="groqApiKeyInput" class="form-input" placeholder="gsk_...">
+        <div class="form-hint">
+          Powers the <strong>llama-3.3-70b-versatile</strong> AI financial reasoning model. Get a free API key at <a href="https://console.groq.com/keys" target="_blank" style="color: #38bdf8; text-decoration: underline;">console.groq.com</a>.
+        </div>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+        <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Detected Backend Mode</div>
+        <div style="font-size: 14px; font-weight: 700; color: #38bdf8;" id="activeBackendModeLabel">DETECTING...</div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+          Seamlessly supports Google Apps Script (Web App), FastAPI (Python), and Local Browser Storage.
+        </p>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Close</button>
+        <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+  <script>
+    /* Inline Fallback & Apps Script compatibility */
+    /**
+ * SaveIQ – AI Savings Goal Tracker
+ * Frontend Interaction, Dynamic Analytics, AI Insights & Backend Bridge
+ * 
+ * Features:
+ * - Dual Engine: Automatically bridges with Google Apps Script (google.script.run),
+ *   FastAPI backend (/api/*), or Local Browser Storage with Direct Groq API client!
+ * - Real-time Financial Analytics & KPI calculation
+ * - Reactive Filtering, Search, & Sorting
+ * - AI Recommendation streaming & markdown rendering
+ * - Confetti celebration on goal achievement
+ * - PDF and CSV report export
+ */
+
+// ==========================================
+// STATE MANAGEMENT & CONFIGURATION
+// ==========================================
+const AppState = {
+  goals: [],
+  filteredGoals: [],
+  currentFilter: "all",
+  searchQuery: "",
+  sortBy: "deadline",
+  stats: {
+    totalGoals: 0,
+    totalTarget: 0,
+    totalSaved: 0,
+    totalRemaining: 0,
+    overallProgress: 0,
+    activeGoals: 0,
+    completedGoals: 0,
+    overdueGoals: 0
+  },
+  currentGoalForDeposit: null,
+  currentGoalForAI: null,
+  groqApiKey: localStorage.getItem("saveiq_groq_key") || "",
+  backendMode: "auto" // 'auto', 'gas', 'fastapi', 'local'
+};
+
+// Purpose to Emoji Mapping for Visual Appeal
+const PURPOSE_ICONS = {
+  "Emergency Fund": "🛡️",
+  "Tech & Gadgets": "💻",
+  "Vacation & Travel": "✈️",
+  "Vehicle & Transport": "🚗",
+  "Home & Real Estate": "🏡",
+  "Education & Career": "🎓",
+  "Investment & Wealth": "📈",
+  "Shopping & Luxury": "🛍️",
+  "Health & Wellness": "❤️",
+  "General Savings": "💰"
+};
+
+// ==========================================
+// BACKEND BRIDGE & DATA PROVIDER
+// ==========================================
+const BackendBridge = {
+  isGAS: function() {
+    return typeof google !== "undefined" && google.script && google.script.run;
+  },
+
+  isFastAPIAvailable: false,
+
+  detectMode: async function() {
+    if (this.isGAS()) {
+      AppState.backendMode = "gas";
+      return "gas";
+    }
+    try {
+      const res = await fetch("/api/goals", { method: "HEAD" });
+      if (res.ok) {
+        AppState.backendMode = "fastapi";
+        this.isFastAPIAvailable = true;
+        return "fastapi";
+      }
+    } catch (e) {
+      // Not running against FastAPI
+    }
+    AppState.backendMode = "local";
+    return "local";
+  },
+
+  fetchGoals: function() {
+    return new Promise((resolve, reject) => {
+      if (AppState.backendMode === "gas") {
+        google.script.run
+          .withSuccessHandler(res => resolve(res.goals || []))
+          .withFailureHandler(err => reject(err))
+          .getAllGoals();
+      } else if (AppState.backendMode === "fastapi") {
+        fetch("/api/goals")
+          .then(res => res.json())
+          .then(data => resolve(data.goals || []))
+          .catch(err => reject(err));
+      } else {
+        // LocalStorage fallback
+        const local = localStorage.getItem("saveiq_goals");
+        let list = local ? JSON.parse(local) : getDemoGoals();
+        resolve(list.map(calculateClientMetrics));
+      }
+    });
+  },
+
+  createGoal: function(goalData) {
+    return new Promise((resolve, reject) => {
+      if (AppState.backendMode === "gas") {
+        google.script.run
+          .withSuccessHandler(res => resolve(res))
+          .withFailureHandler(err => reject(err))
+          .addGoal(goalData);
+      } else if (AppState.backendMode === "fastapi") {
+        fetch("/api/goals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(goalData)
+        })
+          .then(res => res.json())
+          .then(data => resolve(data))
+          .catch(err => reject(err));
+      } else {
+        const id = "GID-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+        const newGoal = {
+          id: id,
+          goalName: goalData.goalName,
+          targetAmount: parseFloat(goalData.targetAmount) || 0,
+          savedAmount: parseFloat(goalData.initialSavings) || 0,
+          deadline: goalData.deadline,
+          purpose: goalData.purpose || "General Savings",
+          createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
+          email: goalData.email || "",
+          alertSent: "No"
+        };
+        const calculated = calculateClientMetrics(newGoal);
+        const existing = JSON.parse(localStorage.getItem("saveiq_goals") || "[]");
+        existing.unshift(calculated);
+        localStorage.setItem("saveiq_goals", JSON.stringify(existing));
+        resolve({ success: true, goal: calculated });
+      }
+    });
+  },
+
+  addDeposit: function(id, amount) {
+    return new Promise((resolve, reject) => {
+      if (AppState.backendMode === "gas") {
+        google.script.run
+          .withSuccessHandler(res => resolve(res))
+          .withFailureHandler(err => reject(err))
+          .updateSavings(id, amount);
+      } else if (AppState.backendMode === "fastapi") {
+        fetch(`/api/goals/${id}/savings`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: amount })
+        })
+          .then(res => res.json())
+          .then(data => resolve(data))
+          .catch(err => reject(err));
+      } else {
+        const existing = JSON.parse(localStorage.getItem("saveiq_goals") || "[]");
+        const idx = existing.findIndex(g => g.id === id);
+        if (idx !== -1) {
+          existing[idx].savedAmount += parseFloat(amount);
+          const updated = calculateClientMetrics(existing[idx]);
+          existing[idx] = updated;
+          localStorage.setItem("saveiq_goals", JSON.stringify(existing));
+          resolve({ success: true, goal: updated, newSaved: updated.savedAmount });
+        } else {
+          reject(new Error("Goal not found"));
+        }
+      }
+    });
+  },
+
+  deleteGoal: function(id) {
+    return new Promise((resolve, reject) => {
+      if (AppState.backendMode === "gas") {
+        google.script.run
+          .withSuccessHandler(res => resolve(res))
+          .withFailureHandler(err => reject(err))
+          .deleteGoal(id);
+      } else if (AppState.backendMode === "fastapi") {
+        fetch(`/api/goals/${id}`, { method: "DELETE" })
+          .then(res => res.json())
+          .then(data => resolve(data))
+          .catch(err => reject(err));
+      } else {
+        let existing = JSON.parse(localStorage.getItem("saveiq_goals") || "[]");
+        existing = existing.filter(g => g.id !== id);
+        localStorage.setItem("saveiq_goals", JSON.stringify(existing));
+        resolve({ success: true });
+      }
+    });
+  },
+
+  requestAIInsights: async function(goal) {
+    if (AppState.backendMode === "gas") {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(res => resolve(res))
+          .withFailureHandler(err => reject(err))
+          .getAIInsights(goal.id);
+      });
+    }
+
+    if (AppState.backendMode === "fastapi") {
+      const res = await fetch("/api/ai/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal_id: goal.id })
+      });
+      return await res.json();
+    }
+
+    // Direct Groq Cloud API in Client-Side Mode
+    const apiKey = AppState.groqApiKey;
+    if (!apiKey) {
+      return {
+        success: true,
+        isFallback: true,
+        source: "SaveIQ Smart Heuristic Engine (Tip: Enter Groq API Key in Settings for Llama-3.3-70B)",
+        recommendation: generateClientHeuristic(goal)
+      };
+    }
+
+    try {
+      const prompt = `SAVINGS GOAL PROFILE:
+- Goal Name: ${goal.goalName}
+- Purpose: ${goal.purpose}
+- Target Amount: $${goal.targetAmount}
+- Saved Amount: $${goal.savedAmount} (${goal.progressPercent}%)
+- Remaining Amount: $${goal.remainingAmount}
+- Deadline: ${goal.deadline} (${goal.daysLeft} days left)
+- Status: ${goal.status}
+- Required Daily: $${goal.dailyRequired}/day
+- Required Weekly: $${goal.weeklyRequired}/week
+
+Please act as a top-tier financial strategist and provide actionable, structured advice in clean markdown.`;
+
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            {
+              role: "system",
+              content: "You are SaveIQ's Senior AI Financial Advisor. Format your response with clear headings, daily savings pacing, 3 high-impact expense trimming hacks tailored to the purpose, and behavioral motivation."
+            },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 1024
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Groq API returned HTTP " + response.status);
+      }
+
+      const json = await response.json();
+      const content = json.choices[0].message.content;
+      return {
+        success: true,
+        isFallback: false,
+        source: "Groq Cloud (Llama-3.3-70B)",
+        recommendation: content
+      };
+    } catch (err) {
+      console.warn("Direct Groq call failed, using heuristic:", err);
+      return {
+        success: true,
+        isFallback: true,
+        source: "SaveIQ Heuristic Engine (Groq request issue)",
+        recommendation: generateClientHeuristic(goal)
+      };
+    }
+  },
+
+  triggerAudit: function() {
+    return new Promise((resolve, reject) => {
+      if (AppState.backendMode === "gas") {
+        google.script.run
+          .withSuccessHandler(res => resolve(res))
+          .withFailureHandler(err => reject(err))
+          .dailyAuditTrigger();
+      } else if (AppState.backendMode === "fastapi") {
+        fetch("/api/audit/trigger", { method: "POST" })
+          .then(res => res.json())
+          .then(data => resolve(data))
+          .catch(err => reject(err));
+      } else {
+        // Local audit simulation
+        const goals = AppState.goals;
+        const alerted = goals.filter(g => (g.daysLeft <= 7 || g.status === "Overdue") && g.status !== "Completed");
+        resolve({
+          success: true,
+          processed: goals.length,
+          alertsSent: alerted.length,
+          logs: alerted.map(g => `Alert queued for ${g.email || 'user'}: "${g.goalName}" (${g.daysLeft}d left)`)
+        });
+      }
+    });
+  }
+};
+
+// ==========================================
+// CLIENT METRICS & HEURISTIC ENGINE
+// ==========================================
+function calculateClientMetrics(goal) {
+  const target = Math.max(parseFloat(goal.targetAmount) || 0, 0);
+  const saved = Math.max(parseFloat(goal.savedAmount) || 0, 0);
+  const remaining = Math.max(target - saved, 0);
+  const progressPercent = target > 0 ? Math.min(Math.round((saved / target) * 1000) / 10, 100) : 0;
+
+  const deadline = new Date(goal.deadline);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  deadline.setHours(0, 0, 0, 0);
+
+  const diffTime = deadline.getTime() - today.getTime();
+  const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  let status = "Active";
+  if (saved >= target) {
+    status = "Completed";
+  } else if (daysLeft < 0) {
+    status = "Overdue";
+  }
+
+  let dailyRequired = 0;
+  let weeklyRequired = 0;
+  if (status === "Active" && daysLeft > 0 && remaining > 0) {
+    dailyRequired = Math.round((remaining / daysLeft) * 100) / 100;
+    weeklyRequired = Math.round((remaining / (daysLeft / 7)) * 100) / 100;
+  }
+
+  return {
+    id: goal.id,
+    goalName: goal.goalName,
+    targetAmount: target,
+    savedAmount: saved,
+    remainingAmount: remaining,
+    progressPercent: progressPercent,
+    deadline: goal.deadline,
+    daysLeft: daysLeft,
+    status: status,
+    purpose: goal.purpose || "General Savings",
+    createdAt: goal.createdAt || new Date().toISOString().slice(0, 10),
+    email: goal.email || "",
+    alertSent: goal.alertSent || "No",
+    dailyRequired: dailyRequired,
+    weeklyRequired: weeklyRequired
+  };
+}
+
+function generateClientHeuristic(goal) {
+  return `### 📊 Financial Progress Assessment: ${goal.goalName}
+- **Current Completion:** ${goal.progressPercent}% ($${goal.savedAmount.toFixed(2)} of $${goal.targetAmount.toFixed(2)})
+- **Outstanding Balance:** $${goal.remainingAmount.toFixed(2)}
+- **Timeline Status:** ${goal.daysLeft >= 0 ? goal.daysLeft + " days remaining" : Math.abs(goal.daysLeft) + " days overdue"}
+
+### 💡 Pacing & Milestone Target
+- **Daily Target:** Save **$${goal.dailyRequired.toFixed(2)}** each day to stay on schedule.
+- **Weekly Target:** Deposit **$${goal.weeklyRequired.toFixed(2)}** per week.
+
+### ✂️ High-Impact Savings Tactics (${goal.purpose})
+1. **The 24-Hour Purchase Rule:** Delay impulse non-essential purchases for 24 hours. If you decide against it, transfer the money directly into this goal!
+2. **Weekly Discretionary Trim:** Identify one subscription or dining expense to redirect into your savings target ($15–$30/week saved).
+3. **Automated Payday Sweep:** Set an automatic bank recurring transfer on payday for $${goal.weeklyRequired.toFixed(2)}.
+
+### 🚀 Motivation
+*"Small daily disciplines repeated consistently lead to massive financial freedom."*`;
+}
+
+function getDemoGoals() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 45);
+
+  const nextWeek = new Date();
+  nextWeek.setDate(nextWeek.getDate() + 5);
+
+  const past = new Date();
+  past.setDate(past.getDate() - 3);
+
+  const demo = [
+    {
+      id: "GID-DEMO001",
+      goalName: "M3 MacBook Pro Setup",
+      targetAmount: 2400,
+      savedAmount: 1800,
+      deadline: tomorrow.toISOString().slice(0, 10),
+      purpose: "Tech & Gadgets",
+      createdAt: "2026-08-01",
+      email: "demo@saveiq.internal",
+      alertSent: "No"
+    },
+    {
+      id: "GID-DEMO002",
+      goalName: "Emergency Reserve Fund",
+      targetAmount: 5000,
+      savedAmount: 3250,
+      deadline: nextWeek.toISOString().slice(0, 10),
+      purpose: "Emergency Fund",
+      createdAt: "2026-07-15",
+      email: "demo@saveiq.internal",
+      alertSent: "No"
+    },
+    {
+      id: "GID-DEMO003",
+      goalName: "Tokyo Cherry Blossom Trip",
+      targetAmount: 3500,
+      savedAmount: 3500,
+      deadline: tomorrow.toISOString().slice(0, 10),
+      purpose: "Vacation & Travel",
+      createdAt: "2026-06-10",
+      email: "demo@saveiq.internal",
+      alertSent: "Completed"
+    },
+    {
+      id: "GID-DEMO004",
+      goalName: "Car Maintenance & Tires",
+      targetAmount: 800,
+      savedAmount: 450,
+      deadline: past.toISOString().slice(0, 10),
+      purpose: "Vehicle & Transport",
+      createdAt: "2026-08-10",
+      email: "demo@saveiq.internal",
+      alertSent: "No"
+    }
+  ];
+  localStorage.setItem("saveiq_goals", JSON.stringify(demo));
+  return demo;
+}
+
+// ==========================================
+// UI RENDERING & COMPONENT LOGIC
+// ==========================================
+async function refreshDashboard() {
+  const goalsContainer = document.getElementById("goalsGrid");
+  goalsContainer.innerHTML = `
+    <div class="spinner-wrap" style="grid-column: 1 / -1;">
+      <div class="spinner"></div>
+      <p style="color: var(--text-muted); font-size: 13px;">Synchronizing financial data...</p>
+    </div>
+  `;
+
+  try {
+    const goals = await BackendBridge.fetchGoals();
+    AppState.goals = goals;
+    calculateAggregateStats();
+    renderKPIs();
+    applyFilterAndRender();
+  } catch (err) {
+    showToast("Failed to load goals: " + err.message, "error");
+    goalsContainer.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <h3>Unable to load savings goals</h3>
+        <p>${err.message}</p>
+        <button class="btn btn-primary" onclick="refreshDashboard()">Retry Connection</button>
+      </div>
+    `;
+  }
+}
+
+function calculateAggregateStats() {
+  let totalTarget = 0;
+  let totalSaved = 0;
+  let active = 0;
+  let completed = 0;
+  let overdue = 0;
+
+  AppState.goals.forEach(g => {
+    totalTarget += g.targetAmount;
+    totalSaved += g.savedAmount;
+    if (g.status === "Completed") completed++;
+    else if (g.status === "Overdue") overdue++;
+    else active++;
+  });
+
+  const overallProgress = totalTarget > 0 ? Math.min(Math.round((totalSaved / totalTarget) * 1000) / 10, 100) : 0;
+
+  AppState.stats = {
+    totalGoals: AppState.goals.length,
+    totalTarget: totalTarget,
+    totalSaved: totalSaved,
+    totalRemaining: Math.max(totalTarget - totalSaved, 0),
+    overallProgress: overallProgress,
+    activeGoals: active,
+    completedGoals: completed,
+    overdueGoals: overdue
+  };
+}
+
+function renderKPIs() {
+  const s = AppState.stats;
+  animateValue("kpiTotalTarget", s.totalTarget, "$");
+  animateValue("kpiTotalSaved", s.totalSaved, "$");
+  animateValue("kpiOverallProgress", s.overallProgress, "", "%");
+  animateValue("kpiActiveGoals", s.activeGoals);
+  animateValue("kpiCompletedGoals", s.completedGoals);
+  animateValue("kpiOverdueGoals", s.overdueGoals);
+
+  // Update remaining pill
+  const remEl = document.getElementById("kpiRemainingLabel");
+  if (remEl) {
+    remEl.textContent = `$${s.totalRemaining.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})} left to fund`;
+  }
+}
+
+function animateValue(elementId, value, prefix = "", suffix = "") {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const isFloat = value % 1 !== 0;
+  el.textContent = `${prefix}${value.toLocaleString(undefined, {
+    minimumFractionDigits: isFloat ? 1 : 0,
+    maximumFractionDigits: 2
+  })}${suffix}`;
+}
+
+function applyFilterAndRender() {
+  let filtered = [...AppState.goals];
+
+  // Apply Category / Status Filter
+  if (AppState.currentFilter !== "all") {
+    filtered = filtered.filter(g => g.status.toLowerCase() === AppState.currentFilter.toLowerCase());
+  }
+
+  // Apply Search
+  if (AppState.searchQuery.trim() !== "") {
+    const q = AppState.searchQuery.toLowerCase();
+    filtered = filtered.filter(g =>
+      g.goalName.toLowerCase().includes(q) ||
+      g.purpose.toLowerCase().includes(q) ||
+      (g.email && g.email.toLowerCase().includes(q))
+    );
+  }
+
+  // Apply Sorting
+  filtered.sort((a, b) => {
+    if (AppState.sortBy === "deadline") {
+      return new Date(a.deadline) - new Date(b.deadline);
+    } else if (AppState.sortBy === "progress") {
+      return b.progressPercent - a.progressPercent;
+    } else if (AppState.sortBy === "target") {
+      return b.targetAmount - a.targetAmount;
+    } else if (AppState.sortBy === "saved") {
+      return b.savedAmount - a.savedAmount;
+    }
+    return 0;
+  });
+
+  AppState.filteredGoals = filtered;
+  renderGoalCards(filtered);
+}
+
+function renderGoalCards(goals) {
+  const container = document.getElementById("goalsGrid");
+  if (!goals || goals.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <h3>No savings goals found</h3>
+        <p>${AppState.searchQuery ? "No goals match your search criteria." : "You haven't added any goals yet. Start building discipline today!"}</p>
+        <button class="btn btn-primary" onclick="openCreateModal()">+ Create New Goal</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = goals.map(g => createGoalCardHtml(g)).join("");
+}
+
+function createGoalCardHtml(g) {
+  const icon = PURPOSE_ICONS[g.purpose] || "💰";
+  const isCompleted = g.status === "Completed";
+  const isOverdue = g.status === "Overdue";
+
+  let statusClass = "active";
+  let statusText = "Active";
+  if (isCompleted) {
+    statusClass = "completed";
+    statusText = "Completed";
+  } else if (isOverdue) {
+    statusClass = "overdue";
+    statusText = "Overdue";
+  }
+
+  let deadlineLabel = "";
+  if (isCompleted) {
+    deadlineLabel = "🎉 Goal Achieved!";
+  } else if (isOverdue) {
+    deadlineLabel = `⚠️ ${Math.abs(g.daysLeft)} days overdue`;
+  } else if (g.daysLeft === 0) {
+    deadlineLabel = "⏳ Due Today!";
+  } else {
+    deadlineLabel = `⏳ ${g.daysLeft} days left`;
+  }
+
+  return `
+    <div class="goal-card" id="card-${g.id}">
+      <div>
+        <div class="goal-top">
+          <div class="goal-meta">
+            <div class="goal-emoji">${icon}</div>
+            <div class="goal-title-wrap">
+              <h3>${escapeHtml(g.goalName)}</h3>
+              <span class="goal-category-tag">${escapeHtml(g.purpose)}</span>
+            </div>
+          </div>
+          <span class="status-pill ${statusClass}">${statusText}</span>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-info">
+            <div>
+              <span class="saved-label">$${g.savedAmount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span>
+              <span class="target-label">/ $${g.targetAmount.toLocaleString()}</span>
+            </div>
+            <span class="percentage-badge">${g.progressPercent}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill ${statusClass}" style="width: ${Math.min(g.progressPercent, 100)}%;"></div>
+          </div>
+        </div>
+
+        <div class="goal-metrics-row">
+          <div class="metric-item">
+            <div class="lbl">Remaining</div>
+            <div class="val" style="color: ${isCompleted ? '#34d399' : '#f87171'}">$${g.remainingAmount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</div>
+          </div>
+          <div class="metric-item">
+            <div class="lbl">Deadline</div>
+            <div class="val" style="color: ${isOverdue ? '#f43f5e' : 'inherit'}">${deadlineLabel}</div>
+          </div>
+          <div class="metric-item">
+            <div class="lbl">Daily Pace</div>
+            <div class="val" style="color: #38bdf8;">${g.dailyRequired > 0 ? '$' + g.dailyRequired.toFixed(2) + '/d' : (isCompleted ? 'Done' : 'N/A')}</div>
+          </div>
+          <div class="metric-item">
+            <div class="lbl">Weekly Pace</div>
+            <div class="val" style="color: #818cf8;">${g.weeklyRequired > 0 ? '$' + g.weeklyRequired.toFixed(2) + '/w' : (isCompleted ? 'Done' : 'N/A')}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="goal-actions">
+        <button class="btn-deposit" onclick="openDepositModal('${g.id}')">
+          + Add Deposit
+        </button>
+        <button class="btn-ai" onclick="openAIInsightsModal('${g.id}')">
+          ✨ AI Insights
+        </button>
+        <button class="btn-delete" title="Delete Goal" onclick="confirmDeleteGoal('${g.id}', '${escapeHtml(g.goalName)}')">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// ==========================================
+// MODALS & USER ACTIONS
+// ==========================================
+
+function openCreateModal() {
+  document.getElementById("createGoalForm").reset();
+  // Set default deadline to 60 days ahead
+  const defaultDate = new Date();
+  defaultDate.setDate(defaultDate.getDate() + 60);
+  document.getElementById("goalDeadline").value = defaultDate.toISOString().slice(0, 10);
+  document.getElementById("createGoalModal").classList.add("active");
+  calculateFormPreview();
+}
+
+function closeCreateModal() {
+  document.getElementById("createGoalModal").classList.remove("active");
+}
+
+function calculateFormPreview() {
+  const target = parseFloat(document.getElementById("goalTarget").value) || 0;
+  const initial = parseFloat(document.getElementById("goalInitial").value) || 0;
+  const deadlineVal = document.getElementById("goalDeadline").value;
+  const previewBox = document.getElementById("formPacingPreview");
+
+  if (!deadlineVal || target <= 0) {
+    if (previewBox) previewBox.style.display = "none";
+    return;
+  }
+
+  const remaining = Math.max(target - initial, 0);
+  const deadline = new Date(deadlineVal);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  deadline.setHours(0, 0, 0, 0);
+
+  const days = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+  if (days > 0 && remaining > 0) {
+    const daily = (remaining / days).toFixed(2);
+    const weekly = (remaining / (days / 7)).toFixed(2);
+    if (previewBox) {
+      previewBox.style.display = "block";
+      previewBox.innerHTML = `
+        💡 <strong>Plan Velocity:</strong> To reach $${target.toLocaleString()} in ${days} days, you will need to save 
+        <strong style="color: #38bdf8;">$${daily}/day</strong> or <strong style="color: #818cf8;">$${weekly}/week</strong>.
+      `;
+    }
+  } else if (previewBox) {
+    previewBox.style.display = "none";
+  }
+}
+
+async function handleCreateGoalSubmit(e) {
+  e.preventDefault();
+  const submitBtn = document.getElementById("btnSubmitGoal");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `Saving...`;
+
+  const goalData = {
+    goalName: document.getElementById("goalName").value.trim(),
+    targetAmount: parseFloat(document.getElementById("goalTarget").value),
+    initialSavings: parseFloat(document.getElementById("goalInitial").value) || 0,
+    deadline: document.getElementById("goalDeadline").value,
+    purpose: document.getElementById("goalPurpose").value,
+    email: document.getElementById("goalEmail").value.trim()
+  };
+
+  try {
+    const res = await BackendBridge.createGoal(goalData);
+    if (res.success) {
+      showToast("Goal created successfully!", "success");
+      closeCreateModal();
+      await refreshDashboard();
+    } else {
+      showToast(res.message || "Failed to create goal", "error");
+    }
+  } catch (err) {
+    showToast("Error: " + err.message, "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `Create Savings Goal`;
+  }
+}
+
+// Deposit Modal
+function openDepositModal(goalId) {
+  const goal = AppState.goals.find(g => g.id === goalId);
+  if (!goal) return;
+  AppState.currentGoalForDeposit = goal;
+
+  document.getElementById("depositGoalName").textContent = goal.goalName;
+  document.getElementById("depositGoalRemaining").textContent = "$" + goal.remainingAmount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  document.getElementById("depositAmountInput").value = "";
+  document.getElementById("depositModal").classList.add("active");
+}
+
+function closeDepositModal() {
+  document.getElementById("depositModal").classList.remove("active");
+  AppState.currentGoalForDeposit = null;
+}
+
+function setPresetDeposit(amount) {
+  document.getElementById("depositAmountInput").value = amount;
+}
+
+async function handleDepositSubmit(e) {
+  e.preventDefault();
+  if (!AppState.currentGoalForDeposit) return;
+
+  const amount = parseFloat(document.getElementById("depositAmountInput").value);
+  if (!amount || amount <= 0) {
+    showToast("Please enter a valid deposit amount", "warning");
+    return;
+  }
+
+  const btn = document.getElementById("btnConfirmDeposit");
+  btn.disabled = true;
+  btn.innerHTML = "Processing...";
+
+  try {
+    const res = await BackendBridge.addDeposit(AppState.currentGoalForDeposit.id, amount);
+    if (res.success) {
+      showToast(`Deposited $${amount.toFixed(2)} to ${AppState.currentGoalForDeposit.goalName}!`, "success");
+      
+      // If goal reached 100%, trigger confetti!
+      if (res.goal && res.goal.status === "Completed") {
+        triggerConfettiCelebration();
+      }
+
+      closeDepositModal();
+      await refreshDashboard();
+    } else {
+      showToast(res.message || "Failed to add deposit", "error");
+    }
+  } catch (err) {
+    showToast("Error: " + err.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "Deposit Contribution";
+  }
+}
+
+// Goal Deletion
+async function confirmDeleteGoal(id, name) {
+  if (confirm(`Are you sure you want to delete the goal "${name}"? This action cannot be undone.`)) {
+    try {
+      const res = await BackendBridge.deleteGoal(id);
+      if (res.success) {
+        showToast("Goal removed", "success");
+        await refreshDashboard();
+      } else {
+        showToast(res.message || "Failed to delete goal", "error");
+      }
+    } catch (err) {
+      showToast("Error deleting: " + err.message, "error");
+    }
+  }
+}
+
+// AI Insights Modal
+async function openAIInsightsModal(goalId) {
+  const goal = AppState.goals.find(g => g.id === goalId);
+  if (!goal) return;
+  AppState.currentGoalForAI = goal;
+
+  document.getElementById("aiGoalTitle").textContent = goal.goalName;
+  document.getElementById("aiSourceBadge").textContent = "Analyzing with Groq AI...";
+  document.getElementById("aiContentBox").innerHTML = `
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <p style="color: #38bdf8; font-weight: 600;">Consulting Llama-3.3-70B Financial Strategy Engine...</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Evaluating trajectory, expense-trimming hacks & velocity milestones</p>
+    </div>
+  `;
+
+  document.getElementById("aiModal").classList.add("active");
+
+  try {
+    const res = await BackendBridge.requestAIInsights(goal);
+    if (res.success) {
+      document.getElementById("aiSourceBadge").textContent = res.source || "Groq Cloud (Llama-3.3-70B)";
+      document.getElementById("aiContentBox").innerHTML = parseMarkdownToHtml(res.recommendation);
+    } else {
+      document.getElementById("aiContentBox").innerHTML = `<p style="color: #f87171;">Failed to generate AI insights: ${res.message}</p>`;
+    }
+  } catch (err) {
+    document.getElementById("aiContentBox").innerHTML = `<p style="color: #f87171;">Error: ${err.message}</p>`;
+  }
+}
+
+function closeAIModal() {
+  document.getElementById("aiModal").classList.remove("active");
+  AppState.currentGoalForAI = null;
+}
+
+function copyAIAdvice() {
+  const box = document.getElementById("aiContentBox");
+  if (!box) return;
+  navigator.clipboard.writeText(box.innerText).then(() => {
+    showToast("AI Advice copied to clipboard!", "success");
+  });
+}
+
+// Simple Markdown Parser for AI Output
+function parseMarkdownToHtml(md) {
+  if (!md) return "";
+  let html = md
+    .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+    .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+    .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+    .replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/gim, "<em>$1</em>")
+    .replace(/\n\n/gim, "<p></p>")
+    .replace(/^\- (.*$)/gim, "<li>$1</li>")
+    .replace(/^\d+\. (.*$)/gim, "<li>$1</li>");
+
+  // Wrap list items
+  html = html.replace(/(<li>.*?<\/li>)/gms, "<ul>$1</ul>");
+  html = html.replace(/<\/ul>\s*<ul>/g, "");
+  return html;
+}
+
+// Settings Modal
+function openSettingsModal() {
+  document.getElementById("groqApiKeyInput").value = AppState.groqApiKey;
+  document.getElementById("activeBackendModeLabel").textContent = AppState.backendMode.toUpperCase();
+  document.getElementById("settingsModal").classList.add("active");
+}
+
+function closeSettingsModal() {
+  document.getElementById("settingsModal").classList.remove("active");
+}
+
+function saveSettings() {
+  const key = document.getElementById("groqApiKeyInput").value.trim();
+  AppState.groqApiKey = key;
+  localStorage.setItem("saveiq_groq_key", key);
+
+  if (AppState.backendMode === "gas") {
+    google.script.run
+      .withSuccessHandler(res => {
+        showToast("Key saved in Google Apps Script properties!", "success");
+      })
+      .setGroqApiKey(key);
+  }
+
+  showToast("Settings saved successfully!", "success");
+  closeSettingsModal();
+}
+
+// Daily Audit Trigger Execution
+async function runManualAudit() {
+  showToast("Triggering automated financial audit...", "info");
+  try {
+    const res = await BackendBridge.triggerAudit();
+    if (res.success) {
+      showToast(`Audit complete: ${res.processed} goals scanned, ${res.alertsSent} alert(s) dispatched!`, "success");
+      await refreshDashboard();
+    } else {
+      showToast("Audit failed: " + res.message, "error");
+    }
+  } catch (err) {
+    showToast("Error running audit: " + err.message, "error");
+  }
+}
+
+// Export to CSV
+function exportGoalsCSV() {
+  if (AppState.goals.length === 0) {
+    showToast("No goals to export", "warning");
+    return;
+  }
+
+  const headers = ["ID", "Goal Name", "Category", "Target ($)", "Saved ($)", "Remaining ($)", "Progress (%)", "Deadline", "Days Left", "Status", "Email"];
+  const rows = AppState.goals.map(g => [
+    g.id,
+    `"${g.goalName.replace(/"/g, '""')}"`,
+    `"${g.purpose}"`,
+    g.targetAmount,
+    g.savedAmount,
+    g.remainingAmount,
+    g.progressPercent,
+    g.deadline,
+    g.daysLeft,
+    g.status,
+    g.email || ""
+  ]);
+
+  const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `SaveIQ_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast("CSV report downloaded successfully!", "success");
+}
+
+// Print / PDF Export
+function printFinancialReport() {
+  window.print();
+}
+
+// Toast Notifications
+function showToast(message, type = "info") {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  let icon = "ℹ️";
+  if (type === "success") icon = "✅";
+  else if (type === "error") icon = "❌";
+  else if (type === "warning") icon = "⚠️";
+
+  toast.innerHTML = `<span>${icon}</span><span>${escapeHtml(message)}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(100%)";
+    toast.style.transition = "all 0.3s ease";
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// Confetti Micro-Interaction
+function triggerConfettiCelebration() {
+  const canvas = document.createElement("canvas");
+  canvas.style.position = "fixed";
+  canvas.style.top = "0";
+  canvas.style.left = "0";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = "9999";
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const colors = ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f43f5e", "#c084fc"];
+
+  for (let i = 0; i < 120; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 16,
+      vy: (Math.random() - 0.7) * 16,
+      size: Math.random() * 8 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      vRot: (Math.random() - 0.5) * 10,
+      opacity: 1
+    });
+  }
+
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.3; // gravity
+      p.rotation += p.vRot;
+      p.opacity -= 0.012;
+
+      if (p.opacity > 0) {
+        alive = true;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(p.opacity, 0);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+    });
+
+    frame++;
+    if (alive && frame < 150) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+// ==========================================
+// INITIALIZATION & EVENT LISTENERS
+// ==========================================
+document.addEventListener("DOMContentLoaded", async () => {
+  // Setup listeners for filter buttons
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      AppState.currentFilter = btn.dataset.filter;
+      applyFilterAndRender();
+    });
+  });
+
+  // Search input
+  const searchInput = document.getElementById("searchGoalInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", e => {
+      AppState.searchQuery = e.target.value;
+      applyFilterAndRender();
+    });
+  }
+
+  // Sort selector
+  const sortSelect = document.getElementById("sortGoalSelect");
+  if (sortSelect) {
+    sortSelect.addEventListener("change", e => {
+      AppState.sortBy = e.target.value;
+      applyFilterAndRender();
+    });
+  }
+
+  // Live Pacing Preview in Create Form
+  ["goalTarget", "goalInitial", "goalDeadline"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", calculateFormPreview);
+  });
+
+  // Form Submissions
+  const createForm = document.getElementById("createGoalForm");
+  if (createForm) createForm.addEventListener("submit", handleCreateGoalSubmit);
+
+  const depositForm = document.getElementById("depositForm");
+  if (depositForm) depositForm.addEventListener("submit", handleDepositSubmit);
+
+  // Detect mode & load data
+  await BackendBridge.detectMode();
+  await refreshDashboard();
+});
+
+  </script>
+</body>
+</html>

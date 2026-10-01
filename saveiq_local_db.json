@@ -1,0 +1,35 @@
+﻿[
+    {
+        "id":  "GID-DEMO01",
+        "goalName":  "M3 MacBook Pro Setup",
+        "targetAmount":  2400,
+        "savedAmount":  1800,
+        "deadline":  "2026-11-13",
+        "purpose":  "Tech \u0026 Gadgets",
+        "createdAt":  "2026-09-09 21:10:07",
+        "email":  "user@saveiq.internal",
+        "alertSent":  "No"
+    },
+    {
+        "id":  "GID-DEMO02",
+        "goalName":  "Emergency Reserve Fund",
+        "targetAmount":  5000,
+        "savedAmount":  3250,
+        "deadline":  "2026-10-04",
+        "purpose":  "Emergency Fund",
+        "createdAt":  "2026-08-30 21:10:07",
+        "email":  "user@saveiq.internal",
+        "alertSent":  "No"
+    },
+    {
+        "id":  "GID-DEMO03",
+        "goalName":  "Car Maintenance \u0026 Tires",
+        "targetAmount":  800,
+        "savedAmount":  450,
+        "deadline":  "2026-09-26",
+        "purpose":  "Vehicle \u0026 Transport",
+        "createdAt":  "2026-08-20 21:10:07",
+        "email":  "user@saveiq.internal",
+        "alertSent":  "No"
+    }
+]

@@ -1,0 +1,19 @@
+# Environment variables and credentials
+.env
+*.env.local
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# SQLite databases
+*.db
+saveiq.db
+
+# OS specific files
+.DS_Store
+Thumbs.db
