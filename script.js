@@ -47,6 +47,20 @@ const PURPOSE_LABELS = {
 };
 
 // ==========================================
+// CURRENCY FORMATTER (Indian Rupees ₹)
+// ==========================================
+const CURRENCY_SYMBOL = "₹";
+
+function formatCurrency(num, showDecimals = false) {
+  if (num === null || num === undefined || isNaN(num)) return `${CURRENCY_SYMBOL}0`;
+  const n = Number(num);
+  const options = showDecimals
+    ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    : { minimumFractionDigits: 0, maximumFractionDigits: 2 };
+  return `${CURRENCY_SYMBOL}${n.toLocaleString('en-IN', options)}`;
+}
+
+// ==========================================
 // THEME MANAGEMENT (Light by Default)
 // ==========================================
 function initTheme() {
@@ -313,14 +327,14 @@ const BackendBridge = {
     try {
       const prompt = `SAVINGS GOAL ANALYSIS:
 - Goal: ${goal.goalName} (${goal.purpose})
-- Target: $${goal.targetAmount.toFixed(2)}
-- Current Balance: $${goal.savedAmount.toFixed(2)} (${goal.progressPercent}%)
-- Remaining: $${goal.remainingAmount.toFixed(2)}
+- Target: ₹${goal.targetAmount.toLocaleString('en-IN')}
+- Current Balance: ₹${goal.savedAmount.toLocaleString('en-IN')} (${goal.progressPercent}%)
+- Remaining: ₹${goal.remainingAmount.toLocaleString('en-IN')}
 - Target Date: ${goal.deadline} (${goal.daysLeft} days)
 - Status: ${goal.status}
-- Pacing: $${goal.dailyRequired.toFixed(2)}/day ($${goal.weeklyRequired.toFixed(2)}/week)
+- Pacing: ₹${goal.dailyRequired.toFixed(2)}/day (₹${goal.weeklyRequired.toFixed(2)}/week)
 
-Provide a sharp, practical financial plan in clean markdown with:
+Provide a sharp, practical financial plan in clean markdown with amounts formatted in Indian Rupees (₹):
 1. Trajectory & Pacing Review
 2. Milestone Schedule (Weekly contributions)
 3. 3 Expense-Reduction Tactics relevant to ${goal.purpose}
@@ -478,8 +492,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO01",
       goalName: "Emergency Reserve Fund (6 Months)",
-      targetAmount: 12000,
-      savedAmount: 9600,
+      targetAmount: 1000000,
+      savedAmount: 800000,
       deadline: formatOffset(62),
       purpose: "Emergency Fund",
       createdAt: "2026-06-15 10:00:00",
@@ -489,8 +503,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO02",
       goalName: "M3 Max MacBook Pro & Studio Display",
-      targetAmount: 3500,
-      savedAmount: 2800,
+      targetAmount: 350000,
+      savedAmount: 280000,
       deadline: formatOffset(46),
       purpose: "Tech & Gadgets",
       createdAt: "2026-08-01 14:20:00",
@@ -500,8 +514,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO03",
       goalName: "Kyoto & Tokyo Autumn Vacation",
-      targetAmount: 4200,
-      savedAmount: 3800,
+      targetAmount: 400000,
+      savedAmount: 360000,
       deadline: formatOffset(21),
       purpose: "Vacation & Travel",
       createdAt: "2026-05-10 11:30:00",
@@ -511,8 +525,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO04",
       goalName: "First Home Down Payment",
-      targetAmount: 45000,
-      savedAmount: 27500,
+      targetAmount: 3500000,
+      savedAmount: 2150000,
       deadline: formatOffset(305),
       purpose: "Home & Real Estate",
       createdAt: "2026-01-10 09:00:00",
@@ -522,8 +536,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO05",
       goalName: "Index Fund & Dividend Portfolio",
-      targetAmount: 8000,
-      savedAmount: 8000,
+      targetAmount: 600000,
+      savedAmount: 600000,
       deadline: formatOffset(-15),
       purpose: "Investment & Wealth",
       createdAt: "2026-03-01 08:00:00",
@@ -533,8 +547,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO06",
       goalName: "Car Major Service & All-Terrain Tires",
-      targetAmount: 1200,
-      savedAmount: 750,
+      targetAmount: 75000,
+      savedAmount: 48000,
       deadline: formatOffset(9),
       purpose: "Vehicle & Transport",
       createdAt: "2026-09-01 16:45:00",
@@ -544,8 +558,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO07",
       goalName: "Executive AI & Cloud Architecture Masterclass",
-      targetAmount: 1500,
-      savedAmount: 1500,
+      targetAmount: 120000,
+      savedAmount: 120000,
       deadline: formatOffset(-30),
       purpose: "Education & Career",
       createdAt: "2026-07-01 12:00:00",
@@ -555,8 +569,8 @@ function getDemoGoals() {
     {
       id: "GID-DEMO08",
       goalName: "Home Gym & Wellness Upgrade",
-      targetAmount: 2200,
-      savedAmount: 650,
+      targetAmount: 180000,
+      savedAmount: 54000,
       deadline: formatOffset(120),
       purpose: "Health & Wellness",
       createdAt: "2026-10-01 15:10:00",
@@ -568,21 +582,21 @@ function getDemoGoals() {
 
 function generateClientHeuristic(goal) {
   return `### Velocity & Pacing Assessment
-- **Funded:** $${goal.savedAmount.toLocaleString()} of $${goal.targetAmount.toLocaleString()} (${goal.progressPercent}%)
-- **Outstanding Balance:** $${goal.remainingAmount.toLocaleString()}
+- **Funded:** ${formatCurrency(goal.savedAmount)} of ${formatCurrency(goal.targetAmount)} (${goal.progressPercent}%)
+- **Outstanding Balance:** ${formatCurrency(goal.remainingAmount)}
 - **Timeline Horizon:** ${goal.deadline} (${goal.daysLeft} days remaining)
 
 ### Structured Contribution Milestones
-- **Daily Pace:** **$${goal.dailyRequired.toFixed(2)} / day**
-- **Weekly Milestone:** **$${goal.weeklyRequired.toFixed(2)} / week**
+- **Daily Pace:** **${formatCurrency(goal.dailyRequired, true)} / day**
+- **Weekly Milestone:** **${formatCurrency(goal.weeklyRequired, true)} / week**
 
 ### High-Impact Expense Levers (${goal.purpose})
-1. **Automated Payday Sweep:** Transfer $${goal.weeklyRequired.toFixed(2)} on every compensation date before discretionary budgeting.
-2. **Subscription Audit:** Audit bank recurring debits and pause one unused digital subscription.
-3. **The 48-Hour Delay:** Hold off on discretionary purchases exceeding $50 for 48 hours; deposit unspent funds immediately.
+1. **Automated Payday Sweep:** Transfer ${formatCurrency(goal.weeklyRequired, true)} on every salary date before discretionary budgeting.
+2. **Subscription Audit:** Audit bank recurring debits and cancel one unused digital subscription.
+3. **The 48-Hour Rule:** For discretionary expenses exceeding ₹2,000, wait 48 hours; transfer the unspent amount to your savings goal.
 
 ### Behavioral Discipline Protocol
-Keep target savings segregated in a dedicated high-yield account with withdrawal friction to eliminate spontaneous liquidations.`;
+Keep target savings segregated in a dedicated high-yield auto-sweep account with withdrawal friction to eliminate spontaneous liquidations.`;
 }
 
 // ==========================================
@@ -636,7 +650,7 @@ function openHistoryModal(goalId) {
     container.innerHTML = `
       <div style="text-align: center; padding: 28px 16px; color: var(--text-muted); font-size: 13px;">
         No individual deposits logged yet for this goal.<br>
-        Current balance: <strong style="color: var(--text-primary);">$${goal.savedAmount.toLocaleString()}</strong>
+        Current balance: <strong style="color: var(--text-primary);">${formatCurrency(goal.savedAmount)}</strong>
       </div>
     `;
   } else {
@@ -654,7 +668,7 @@ function openHistoryModal(goalId) {
             <tr>
               <td>${escapeHtml(tx.date)}</td>
               <td>${escapeHtml(tx.note)}</td>
-              <td class="amount" style="text-align: right;">+$${tx.amount.toFixed(2)}</td>
+              <td class="amount" style="text-align: right;">+${formatCurrency(tx.amount)}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -711,9 +725,9 @@ function syncSimulatorTarget() {
 function runSimulation() {
   const target = parseFloat(document.getElementById("simTargetInput").value) || 0;
   const saved = parseFloat(document.getElementById("simSavedInput").value) || 0;
-  const weeklyDeposit = parseFloat(document.getElementById("simWeeklySlider").value) || 50;
+  const weeklyDeposit = parseFloat(document.getElementById("simWeeklySlider").value) || 2000;
 
-  document.getElementById("simWeeklyLabel").textContent = `$${weeklyDeposit}/week`;
+  document.getElementById("simWeeklyLabel").textContent = `${formatCurrency(weeklyDeposit)}/week`;
 
   const remaining = Math.max(target - saved, 0);
   const weeksNeeded = weeklyDeposit > 0 ? Math.ceil(remaining / weeklyDeposit) : 0;
@@ -724,15 +738,16 @@ function runSimulation() {
 
   setText("simWeeksVal", `${weeksNeeded} wks`);
   setText("simDateVal", targetDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }));
-  setText("simDailyPaceVal", `$${(weeklyDeposit / 7).toFixed(2)}/day`);
+  setText("simDailyPaceVal", `${formatCurrency(weeklyDeposit / 7, true)}/day`);
 
   const accelerationText = document.getElementById("simAccelerationTip");
   if (accelerationText) {
-    const fasterWeekly = weeklyDeposit + 25;
+    const boost = 1000;
+    const fasterWeekly = weeklyDeposit + boost;
     const fasterWeeks = Math.ceil(remaining / fasterWeekly);
     const weeksSaved = weeksNeeded - fasterWeeks;
     if (weeksSaved > 0 && remaining > 0) {
-      accelerationText.innerHTML = `💡 Adding <strong>+$25/week</strong> reaches this goal <strong>${weeksSaved} week${weeksSaved > 1 ? 's' : ''} (${weeksSaved * 7} days) sooner</strong>!`;
+      accelerationText.innerHTML = `💡 Adding <strong>+${formatCurrency(boost)}/week</strong> reaches this goal <strong>${weeksSaved} week${weeksSaved > 1 ? 's' : ''} (${weeksSaved * 7} days) sooner</strong>!`;
     } else {
       accelerationText.textContent = remaining === 0 ? "🎉 Target already fully funded!" : "Consistent contributions compound quickly!";
     }
@@ -838,13 +853,13 @@ function computeStats() {
 
 function renderKPIs() {
   const s = AppState.stats;
-  setText("kpiTotalTarget", `$${s.totalTarget.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`);
-  setText("kpiTotalSaved", `$${s.totalSaved.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`);
+  setText("kpiTotalTarget", formatCurrency(s.totalTarget));
+  setText("kpiTotalSaved", formatCurrency(s.totalSaved));
   setText("kpiOverallProgress", `${s.overallProgress}%`);
   setText("kpiActiveGoals", `${s.activeGoals} active`);
   setText("kpiCompletedGoals", `${s.completedGoals} completed`);
   setText("kpiOverdueGoals", `${s.overdueGoals} overdue`);
-  setText("kpiRemainingLabel", `$${s.totalRemaining.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})} remaining`);
+  setText("kpiRemainingLabel", `${formatCurrency(s.totalRemaining)} remaining`);
 
   setText("kpiDisciplineScore", `${s.disciplineScore}%`);
   const subEl = document.getElementById("kpiDisciplineSub");
@@ -937,7 +952,7 @@ function createGoalCardHtml(g) {
 
   const paceLabel = isCompleted
     ? "Goal funded"
-    : (g.dailyRequired > 0 ? `$${g.dailyRequired.toFixed(2)}/day` : "Target achieved");
+    : (g.dailyRequired > 0 ? `${formatCurrency(g.dailyRequired, true)}/day` : "Target achieved");
 
   return `
     <div class="goal-card" id="card-${g.id}">
@@ -952,8 +967,8 @@ function createGoalCardHtml(g) {
 
         <div class="card-amounts">
           <div>
-            <span class="card-amount-saved">$${g.savedAmount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</span>
-            <span class="card-amount-target">/ $${g.targetAmount.toLocaleString()}</span>
+            <span class="card-amount-saved">${formatCurrency(g.savedAmount)}</span>
+            <span class="card-amount-target">/ ${formatCurrency(g.targetAmount)}</span>
           </div>
           <span class="card-progress-percent">${g.progressPercent}%</span>
         </div>
@@ -987,10 +1002,10 @@ function createGoalCardHtml(g) {
         ${!isCompleted ? `
         <div class="card-quick-saves">
           <span class="card-quick-label">Quick Save:</span>
-          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 10)">+$10</button>
-          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 25)">+$25</button>
-          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 50)">+$50</button>
-          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 100)">+$100</button>
+          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 100)">+₹100</button>
+          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 500)">+₹500</button>
+          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 1000)">+₹1,000</button>
+          <button class="btn-quick-chip" onclick="quickDeposit('${g.id}', 2500)">+₹2,500</button>
         </div>` : ''}
       </div>
 
@@ -1067,7 +1082,7 @@ function calculateFormPreview() {
     const weekly = (remaining / (days / 7)).toFixed(2);
     if (previewBox) {
       previewBox.style.display = "block";
-      previewBox.innerHTML = `Pacing target: <strong>$${daily}/day</strong> · <strong>$${weekly}/week</strong> over ${days} days`;
+      previewBox.innerHTML = `Pacing target: <strong>${formatCurrency(daily, true)}/day</strong> · <strong>${formatCurrency(weekly, true)}/week</strong> over ${days} days`;
     }
   } else if (previewBox) {
     previewBox.style.display = "none";
@@ -1117,7 +1132,7 @@ function openDepositModal(goalId) {
   AppState.currentGoalForDeposit = goal;
 
   document.getElementById("depositGoalName").textContent = goal.goalName;
-  document.getElementById("depositGoalRemaining").textContent = "$" + goal.remainingAmount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2});
+  document.getElementById("depositGoalRemaining").textContent = formatCurrency(goal.remainingAmount);
   document.getElementById("depositAmountInput").value = "";
   const noteInput = document.getElementById("depositNoteInput");
   if (noteInput) noteInput.value = "";
@@ -1125,7 +1140,7 @@ function openDepositModal(goalId) {
   // Dynamic Full Balance chip
   const remainingChip = document.getElementById("chipRemainingBalance");
   if (remainingChip) {
-    remainingChip.textContent = `Full ($${goal.remainingAmount.toFixed(0)})`;
+    remainingChip.textContent = `Full (${formatCurrency(goal.remainingAmount)})`;
     remainingChip.onclick = () => setPresetDeposit(goal.remainingAmount);
   }
 
@@ -1149,7 +1164,7 @@ async function quickDeposit(goalId, amount) {
     const res = await BackendBridge.addDeposit(goalId, amount);
     if (res.success) {
       recordTransaction(goalId, amount, "Quick save micro-deposit");
-      showToast(`+$${amount} saved to ${goal.goalName}!`, "success");
+      showToast(`+${formatCurrency(amount)} saved to ${goal.goalName}!`, "success");
       await refreshDashboard();
     } else {
       showToast("Deposit failed: " + res.message, "error");
@@ -1180,7 +1195,7 @@ async function handleDepositSubmit(e) {
     const res = await BackendBridge.addDeposit(AppState.currentGoalForDeposit.id, amount);
     if (res.success) {
       recordTransaction(AppState.currentGoalForDeposit.id, amount, note);
-      showToast(`Deposited $${amount.toFixed(2)} to ${AppState.currentGoalForDeposit.goalName}`, "success");
+      showToast(`Deposited ${formatCurrency(amount, true)} to ${AppState.currentGoalForDeposit.goalName}`, "success");
       closeDepositModal();
       await refreshDashboard();
     } else {
@@ -1374,7 +1389,7 @@ function exportGoalsCSV() {
     return;
   }
 
-  const headers = ["ID", "Goal Name", "Category", "Target ($)", "Saved ($)", "Remaining ($)", "Progress (%)", "Deadline", "Days Left", "Status", "Email"];
+  const headers = ["ID", "Goal Name", "Category", "Target (₹)", "Saved (₹)", "Remaining (₹)", "Progress (%)", "Deadline", "Days Left", "Status", "Email"];
   const rows = AppState.goals.map(g => [
     g.id,
     `"${g.goalName.replace(/"/g, '""')}"`,

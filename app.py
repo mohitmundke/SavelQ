@@ -128,14 +128,14 @@ def init_db():
     count = res[0] if res else 0
     if count == 0:
         sample_goals = [
-            ("GID-DEMO01", "Emergency Reserve Fund (6 Months)", 12000.0, 9600.0, "2026-12-31", "Emergency Fund", "2026-06-15 10:00:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO02", "M3 Max MacBook Pro & Studio Display", 3500.0, 2800.0, "2026-12-15", "Tech & Gadgets", "2026-08-01 14:20:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO03", "Kyoto & Tokyo Autumn Vacation", 4200.0, 3800.0, "2026-11-20", "Vacation & Travel", "2026-05-10 11:30:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO04", "First Home Down Payment", 45000.0, 27500.0, "2027-08-31", "Home & Real Estate", "2026-01-10 09:00:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO05", "Index Fund & Dividend Portfolio", 8000.0, 8000.0, "2026-10-15", "Investment & Wealth", "2026-03-01 08:00:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO06", "Car Major Service & All-Terrain Tires", 1200.0, 750.0, "2026-11-08", "Vehicle & Transport", "2026-09-01 16:45:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO07", "Executive AI & Cloud Architecture Masterclass", 1500.0, 1500.0, "2026-09-30", "Education & Career", "2026-07-01 12:00:00", "user@saveiq.internal", "No"),
-            ("GID-DEMO08", "Home Gym & Wellness Upgrade", 2200.0, 650.0, "2027-02-28", "Health & Wellness", "2026-10-01 15:10:00", "user@saveiq.internal", "No")
+            ("GID-DEMO01", "Emergency Reserve Fund (6 Months)", 1000000.0, 800000.0, "2026-12-31", "Emergency Fund", "2026-06-15 10:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO02", "M3 Max MacBook Pro & Studio Display", 350000.0, 280000.0, "2026-12-15", "Tech & Gadgets", "2026-08-01 14:20:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO03", "Kyoto & Tokyo Autumn Vacation", 400000.0, 360000.0, "2026-11-20", "Vacation & Travel", "2026-05-10 11:30:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO04", "First Home Down Payment", 3500000.0, 2150000.0, "2027-08-31", "Home & Real Estate", "2026-01-10 09:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO05", "Index Fund & Dividend Portfolio", 600000.0, 600000.0, "2026-10-15", "Investment & Wealth", "2026-03-01 08:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO06", "Car Major Service & All-Terrain Tires", 75000.0, 48000.0, "2026-11-08", "Vehicle & Transport", "2026-09-01 16:45:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO07", "Executive AI & Cloud Architecture Masterclass", 120000.0, 120000.0, "2026-09-30", "Education & Career", "2026-07-01 12:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO08", "Home Gym & Wellness Upgrade", 180000.0, 54000.0, "2027-02-28", "Health & Wellness", "2026-10-01 15:10:00", "user@saveiq.internal", "No")
         ]
         ph = "%s" if engine == "postgres" else "?"
         cursor.executemany(f"INSERT INTO goals (id, goal_name, target_amount, saved_amount, deadline, purpose, created_at, email, alert_sent) VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph});", sample_goals)
@@ -358,14 +358,14 @@ def get_ai_insights(req: AIRequest):
     prompt = f"""
 SAVINGS TARGET PROFILE:
 - Goal Name: {goal['goalName']} ({goal['purpose']})
-- Target Capital: ${goal['targetAmount']:,.2f}
-- Current Capital: ${goal['savedAmount']:,.2f} ({goal['progressPercent']}%)
-- Remaining Capital: ${goal['remainingAmount']:,.2f}
+- Target Capital: ₹{goal['targetAmount']:,.2f}
+- Current Capital: ₹{goal['savedAmount']:,.2f} ({goal['progressPercent']}%)
+- Remaining Capital: ₹{goal['remainingAmount']:,.2f}
 - Deadline: {goal['deadline']} ({goal['daysLeft']} days remaining)
 - Status: {goal['status']}
-- Required Velocity: ${goal['dailyRequired']:.2f}/day (${goal['weeklyRequired']:.2f}/week)
+- Required Velocity: ₹{goal['dailyRequired']:.2f}/day (₹{goal['weeklyRequired']:.2f}/week)
 
-Deliver an executive personal finance strategic plan in clean markdown:
+Deliver an executive personal finance strategic plan in clean markdown with figures in Indian Rupees (₹):
 ### 1. Velocity & Pacing Assessment
 Evaluate feasibility based on the timeline and remaining capital.
 
@@ -504,13 +504,13 @@ def generate_pdf_report():
         rows = execute_db("SELECT * FROM goals", fetch="all") or []
         goals = [calculate_goal_metrics(r) for r in rows]
 
-        table_data = [["Goal Name", "Category", "Target ($)", "Saved ($)", "Progress", "Deadline", "Status"]]
+        table_data = [["Goal Name", "Category", "Target (₹)", "Saved (₹)", "Progress", "Deadline", "Status"]]
         for g in goals:
             table_data.append([
                 g['goalName'],
                 g['purpose'],
-                f"${g['targetAmount']:,.2f}",
-                f"${g['savedAmount']:,.2f}",
+                f"₹{g['targetAmount']:,.2f}",
+                f"₹{g['savedAmount']:,.2f}",
                 f"{g['progressPercent']}%",
                 g['deadline'],
                 g['status']

@@ -38,8 +38,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO01"
             goalName = "Emergency Reserve Fund (6 Months)"
-            targetAmount = 12000
-            savedAmount = 9600
+            targetAmount = 1000000
+            savedAmount = 800000
             deadline = $now.AddDays(62).ToString("yyyy-MM-dd")
             purpose = "Emergency Fund"
             createdAt = $now.AddDays(-120).ToString("yyyy-MM-dd HH:mm:ss")
@@ -49,8 +49,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO02"
             goalName = "M3 Max MacBook Pro & Studio Display"
-            targetAmount = 3500
-            savedAmount = 2800
+            targetAmount = 350000
+            savedAmount = 280000
             deadline = $now.AddDays(46).ToString("yyyy-MM-dd")
             purpose = "Tech & Gadgets"
             createdAt = $now.AddDays(-75).ToString("yyyy-MM-dd HH:mm:ss")
@@ -60,8 +60,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO03"
             goalName = "Kyoto & Tokyo Autumn Vacation"
-            targetAmount = 4200
-            savedAmount = 3800
+            targetAmount = 400000
+            savedAmount = 360000
             deadline = $now.AddDays(21).ToString("yyyy-MM-dd")
             purpose = "Vacation & Travel"
             createdAt = $now.AddDays(-160).ToString("yyyy-MM-dd HH:mm:ss")
@@ -71,8 +71,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO04"
             goalName = "First Home Down Payment"
-            targetAmount = 45000
-            savedAmount = 27500
+            targetAmount = 3500000
+            savedAmount = 2150000
             deadline = $now.AddDays(305).ToString("yyyy-MM-dd")
             purpose = "Home & Real Estate"
             createdAt = $now.AddDays(-280).ToString("yyyy-MM-dd HH:mm:ss")
@@ -82,8 +82,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO05"
             goalName = "Index Fund & Dividend Portfolio"
-            targetAmount = 8000
-            savedAmount = 8000
+            targetAmount = 600000
+            savedAmount = 600000
             deadline = $now.AddDays(-15).ToString("yyyy-MM-dd")
             purpose = "Investment & Wealth"
             createdAt = $now.AddDays(-220).ToString("yyyy-MM-dd HH:mm:ss")
@@ -93,8 +93,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO06"
             goalName = "Car Major Service & All-Terrain Tires"
-            targetAmount = 1200
-            savedAmount = 750
+            targetAmount = 75000
+            savedAmount = 48000
             deadline = $now.AddDays(9).ToString("yyyy-MM-dd")
             purpose = "Vehicle & Transport"
             createdAt = $now.AddDays(-45).ToString("yyyy-MM-dd HH:mm:ss")
@@ -104,8 +104,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO07"
             goalName = "Executive AI & Cloud Architecture Masterclass"
-            targetAmount = 1500
-            savedAmount = 1500
+            targetAmount = 120000
+            savedAmount = 120000
             deadline = $now.AddDays(-30).ToString("yyyy-MM-dd")
             purpose = "Education & Career"
             createdAt = $now.AddDays(-110).ToString("yyyy-MM-dd HH:mm:ss")
@@ -115,8 +115,8 @@ function Get-StoredGoals {
         [PSCustomObject]@{
             id = "GID-DEMO08"
             goalName = "Home Gym & Wellness Upgrade"
-            targetAmount = 2200
-            savedAmount = 650
+            targetAmount = 180000
+            savedAmount = 54000
             deadline = $now.AddDays(120).ToString("yyyy-MM-dd")
             purpose = "Health & Wellness"
             createdAt = $now.AddDays(-25).ToString("yyyy-MM-dd HH:mm:ss")
@@ -423,13 +423,13 @@ while ($listener.IsListening) {
                     $promptText = @"
 SAVINGS TARGET PROFILE:
 - Goal: $($g.goalName) ($($g.purpose))
-- Target: `$$($g.targetAmount)
-- Current: `$$($g.savedAmount) ($($g.progressPercent)%)
-- Remaining: `$$($g.remainingAmount)
+- Target: `₹$($g.targetAmount)
+- Current: `₹$($g.savedAmount) ($($g.progressPercent)%)
+- Remaining: `₹$($g.remainingAmount)
 - Deadline: $($g.deadline) ($($g.daysLeft) days left)
-- Velocity: `$$($g.dailyRequired)/day (`$$($g.weeklyRequired)/week)
+- Velocity: `₹$($g.dailyRequired)/day (`₹$($g.weeklyRequired)/week)
 
-Provide an executive personal finance strategic plan in clean markdown:
+Provide an executive personal finance strategic plan in clean markdown with figures formatted in Indian Rupees (`₹):
 ### 1. Velocity & Pacing Assessment
 ### 2. Structured Contribution Milestones
 ### 3. High-Impact Expense Levers ($($g.purpose))
@@ -467,21 +467,21 @@ Provide an executive personal finance strategic plan in clean markdown:
                 if (-not $groqSuccess) {
                     $aiRecommendation = @"
 ### Velocity & Pacing Assessment
-- **Funded:** `$$($g.savedAmount) of `$$($g.targetAmount) ($($g.progressPercent)%)
-- **Outstanding:** `$$($g.remainingAmount)
+- **Funded:** `₹$($g.savedAmount) of `₹$($g.targetAmount) ($($g.progressPercent)%)
+- **Outstanding:** `₹$($g.remainingAmount)
 - **Horizon:** $($g.daysLeft) days left until $($g.deadline)
 
 ### Structured Contribution Milestones
-- **Daily Pace:** **`$$($g.dailyRequired) / day**
-- **Weekly Milestone:** **`$$($g.weeklyRequired) / week**
+- **Daily Pace:** **`₹$($g.dailyRequired) / day**
+- **Weekly Milestone:** **`₹$($g.weeklyRequired) / week**
 
 ### High-Impact Savings Tactics ($($g.purpose))
-1. **Automated Payday Sweep:** Schedule an automated transfer of `$$($g.weeklyRequired) on each payday before discretionary spending occurs.
-2. **Subscription Audit:** Review card debits and cancel one unused recurring subscription (`$15/mo saved).
-3. **The 48-Hour Purchase Filter:** For discretionary purchases exceeding `$50, enforce a 48-hour delay; deposit the unspent amount if the urge passes.
+1. **Automated Payday Sweep:** Schedule an automated transfer of `₹$($g.weeklyRequired) on each salary credit date before discretionary spending occurs.
+2. **Subscription Audit:** Review bank UPI debits and cancel one unused recurring subscription (`₹499/mo saved).
+3. **The 48-Hour Purchase Filter:** For discretionary purchases exceeding `₹2,000, enforce a 48-hour delay; deposit the unspent amount if the urge passes.
 
 ### Behavioral Discipline Protocol
-Lock savings into a dedicated high-yield account with withdrawal friction to eliminate impulsive liquidations.
+Lock savings into a dedicated high-yield auto-sweep account with withdrawal friction to eliminate impulsive liquidations.
 "@
                 }
 
@@ -514,7 +514,7 @@ Lock savings into a dedicated high-yield account with withdrawal friction to eli
             $nowStr = (Get-Date).ToString("MMMM dd, yyyy at hh:mm tt")
             $rowsHtml = ""
             foreach ($g in $goals) {
-                $rowsHtml += "<tr><td>$($g.goalName)</td><td>$($g.purpose)</td><td>`$$($g.targetAmount.ToString('N2'))</td><td>`$$($g.savedAmount.ToString('N2'))</td><td>$($g.progressPercent)%</td><td>$($g.deadline)</td><td>$($g.status)</td></tr>"
+                $rowsHtml += "<tr><td>$($g.goalName)</td><td>$($g.purpose)</td><td>`₹$($g.targetAmount.ToString('N2'))</td><td>`₹$($g.savedAmount.ToString('N2'))</td><td>$($g.progressPercent)%</td><td>$($g.deadline)</td><td>$($g.status)</td></tr>"
             }
             $statementHtml = @"
 <!DOCTYPE html>
@@ -537,7 +537,7 @@ Lock savings into a dedicated high-yield account with withdrawal friction to eli
   <div class='sub'>Generated on $nowStr | Localhost Service</div>
   <table>
     <thead>
-      <tr><th>Goal Name</th><th>Category</th><th>Target</th><th>Saved</th><th>Progress</th><th>Deadline</th><th>Status</th></tr>
+      <tr><th>Goal Name</th><th>Category</th><th>Target (₹)</th><th>Saved (₹)</th><th>Progress</th><th>Deadline</th><th>Status</th></tr>
     </thead>
     <tbody>
       $rowsHtml
