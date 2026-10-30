@@ -254,40 +254,38 @@ def get_ai_insights(req: AIRequest):
     if groq_client:
         try:
             prompt = f"""
-SAVINGS GOAL PROFILE:
-- Goal Name: {goal['goalName']}
-- Purpose/Category: {goal['purpose']}
+SAVINGS GOAL ANALYSIS:
+- Goal: {goal['goalName']} ({goal['purpose']})
 - Target Amount: ${goal['targetAmount']:.2f}
-- Saved Amount: ${goal['savedAmount']:.2f} ({goal['progressPercent']}%)
+- Current Balance: ${goal['savedAmount']:.2f} ({goal['progressPercent']}%)
 - Remaining Amount: ${goal['remainingAmount']:.2f}
-- Deadline: {goal['deadline']} ({goal['daysLeft']} days left)
+- Target Date: {goal['deadline']} ({goal['daysLeft']} days)
 - Status: {goal['status']}
-- Required Daily: ${goal['dailyRequired']:.2f}/day
-- Required Weekly: ${goal['weeklyRequired']:.2f}/week
+- Required Pacing: ${goal['dailyRequired']:.2f}/day (${goal['weeklyRequired']:.2f}/week)
 
-Provide tactical, high-impact financial guidance formatted in crisp markdown with:
-1. Feasibility Assessment
-2. Pacing & Milestones (Daily & Weekly breakdown)
-3. 3 Expense-Trimming Hacks customized for '{goal['purpose']}'
-4. Behavioral Psychology Tip for Financial Discipline
+Provide a sharp, practical financial plan in clean markdown with:
+1. Trajectory & Pacing Review
+2. Milestone Schedule (Weekly contributions)
+3. 3 Expense-Reduction Tactics relevant to {goal['purpose']}
+4. Behavioral Automation Suggestion
 """
             chat_completion = groq_client.chat.completions.create(
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are SaveIQ's Senior AI Financial Advisor and Behavioral Economist. Deliver actionable, encouraging, and structured financial intelligence."
+                        "content": "You are an executive personal finance advisor. Deliver concise, high-value, practical financial recommendations without conversational filler."
                     },
                     {"role": "user", "content": prompt}
                 ],
                 model=MODEL_NAME,
-                temperature=0.7,
-                max_tokens=1024
+                temperature=0.6,
+                max_tokens=900
             )
             ai_content = chat_completion.choices[0].message.content
             return {
                 "success": True,
                 "isFallback": False,
-                "source": "Groq Cloud (Llama-3.3-70B)",
+                "source": "Groq Llama-3.3-70B",
                 "recommendation": ai_content,
                 "goal": goal
             }
@@ -295,27 +293,24 @@ Provide tactical, high-impact financial guidance formatted in crisp markdown wit
             print("[Groq API Error]", e)
 
     # Heuristic Fallback
-    heuristic = f"""### 📊 Financial Progress Assessment: {goal['goalName']}
-- **Current Completion:** {goal['progressPercent']}% (${goal['savedAmount']:.2f} of ${goal['targetAmount']:.2f})
-- **Remaining Balance:** ${goal['remainingAmount']:.2f}
-- **Days Left:** {goal['daysLeft']} days
+    heuristic = f"""### Progress Summary
+- **Funded:** ${goal['savedAmount']:,.2f} of ${goal['targetAmount']:,.2f} ({goal['progressPercent']}%)
+- **Outstanding:** ${goal['remainingAmount']:,.2f}
+- **Target Deadline:** {goal['deadline']} ({goal['daysLeft']} days remaining)
 
-### 💡 Pacing & Milestone Target
-- **Daily Target:** Commit to saving **${goal['dailyRequired']:.2f}** per day.
-- **Weekly Milestone:** Deposit **${goal['weeklyRequired']:.2f}** every week.
+### Recommended Contribution Schedule
+- **Daily Pace:** **${goal['dailyRequired']:.2f} / day**
+- **Weekly Milestone:** **${goal['weeklyRequired']:.2f} / week**
 
-### ✂️ Tailored Expense-Trimming Strategies ({goal['purpose']})
-1. **The 48-Hour Micro-Pause:** Before purchasing discretionary items over $25, pause for 48 hours. If the urge passes, deposit the difference here!
-2. **Automated Payday Sweep:** Schedule an automated bank transfer of ${goal['weeklyRequired']:.2f} on payday before discretionary spending occurs.
-3. **Audit Recurring Subscriptions:** Review card debits and cancel one unused digital subscription.
-
-### 🚀 Behavioral Motivation
-*"Discipline is the bridge between goals and accomplishment."* Stay consistent on SaveIQ!"""
+### Optimization Levers ({goal['purpose']})
+1. **Automated Payday Allocation:** Transfer ${goal['weeklyRequired']:.2f} automatically the day compensation arrives.
+2. **Discretionary Buffer Sweep:** Route unspent weekly dining or entertainment buffer directly into this target.
+3. **The 48-Hour Delay:** Pause non-essential purchases exceeding $30 for 48 hours; transfer unspent funds if desire dissipates."""
 
     return {
         "success": True,
         "isFallback": True,
-        "source": "SaveIQ Financial Heuristic Engine (Configure GROQ_API_KEY in .env for Llama-3.3-70B)",
+        "source": "Financial Planning Engine",
         "recommendation": heuristic,
         "goal": goal
     }

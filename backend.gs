@@ -649,39 +649,32 @@ function getAIInsights(goalId) {
 }
 
 /**
- * Intelligent algorithmic fallback when Groq API key is not configured or network fails.
+ * Algorithmic fallback when Groq API key is not configured or network fails.
  */
 function generateHeuristicRecommendation(goal) {
-  let feasibility = "High";
-  if (goal.daysLeft <= 7 && goal.progressPercent < 50) feasibility = "Urgent Action Required";
-  else if (goal.daysLeft <= 14 && goal.progressPercent < 70) feasibility = "Moderate Pace Adjustment Needed";
-
-  let advice = "### 📊 Goal Progress Analysis: " + goal.goalName + "\n\n";
-  advice += "- **Current Progress:** " + goal.progressPercent + "% ($" + goal.savedAmount.toFixed(2) + " of $" + goal.targetAmount.toFixed(2) + ")\n";
-  advice += "- **Remaining Balance:** $" + goal.remainingAmount.toFixed(2) + "\n";
-  advice += "- **Feasibility Status:** " + feasibility + "\n\n";
+  let advice = "### Progress Summary\n\n";
+  advice += "- **Funded:** $" + goal.savedAmount.toFixed(2) + " of $" + goal.targetAmount.toFixed(2) + " (" + goal.progressPercent + "%)\n";
+  advice += "- **Outstanding:** $" + goal.remainingAmount.toFixed(2) + "\n";
+  advice += "- **Target Deadline:** " + goal.deadline + " (" + goal.daysLeft + " days remaining)\n\n";
 
   if (goal.status === "Completed") {
-    advice += "🎉 **Congratulations!** You have fully achieved this savings goal. Consider rolling any ongoing surplus into an emergency reserve or investment vehicle.\n";
+    advice += "**Target Achieved:** This goal has been fully funded. Ongoing deposits can be allocated to other active targets or emergency reserves.\n";
     return advice;
   }
 
   if (goal.status === "Overdue") {
-    advice += "⚠️ **Deadline Passed:** Your deadline expired " + Math.abs(goal.daysLeft) + " days ago. Don't be discouraged! Consider resetting your deadline by 30 days and committing to a small, sustainable weekly deposit of $" + (goal.remainingAmount / 4).toFixed(2) + ".\n\n";
+    advice += "**Schedule Review:** This goal is " + Math.abs(goal.daysLeft) + " days past its target date. Consider extending the deadline by 30 days and committing to a weekly pace of $" + (goal.remainingAmount / 4).toFixed(2) + ".\n\n";
     return advice;
   }
 
-  advice += "### 💡 Tactical Savings Schedule\n";
-  advice += "- **Daily Target:** Commit to saving **$" + goal.dailyRequired.toFixed(2) + "** each day.\n";
-  advice += "- **Weekly Milestone:** Deposit **$" + goal.weeklyRequired.toFixed(2) + "** every week to stay exactly on target.\n\n";
+  advice += "### Recommended Contribution Schedule\n";
+  advice += "- **Daily Pace:** **$" + goal.dailyRequired.toFixed(2) + " / day**\n";
+  advice += "- **Weekly Milestone:** **$" + goal.weeklyRequired.toFixed(2) + " / week**\n\n";
 
-  advice += "### ✂️ Targeted Expense-Trimming Strategies (" + goal.purpose + ")\n";
-  advice += "1. **The 48-Hour Micro-Pause:** Before making any non-essential purchase over $25, wait 48 hours. If the impulse fades, immediately transfer that amount to *" + goal.goalName + "*.\n";
-  advice += "2. **Subscription Audit:** Review recurring bank debits and cancel one unused streaming or app subscription ($10-$20/mo recovered).\n";
-  advice += "3. **Automate on Payday:** Schedule an automatic transfer of $" + goal.weeklyRequired.toFixed(2) + " immediately when your income clears your account.\n\n";
-
-  advice += "### 🚀 Behavioral Motivation\n";
-  advice += "*\"Discipline is choosing between what you want now and what you want most.\"* Keep visual track of your progress on your SaveIQ dashboard!";
+  advice += "### Optimization Levers (" + goal.purpose + ")\n";
+  advice += "1. **Automated Payday Allocation:** Transfer $" + goal.weeklyRequired.toFixed(2) + " automatically the day income is credited.\n";
+  advice += "2. **Discretionary Buffer Sweep:** Route unspent weekly discretionary balances directly into this goal.\n";
+  advice += "3. **The 48-Hour Delay:** Hold off on discretionary purchases over $30 for 48 hours to redirect impulse spending.\n";
 
   return advice;
 }
@@ -760,16 +753,16 @@ function sendDeadlineAlertEmail(goal) {
   const recipient = goal.email;
   const isOverdue = goal.status === "Overdue";
   const subject = isOverdue
-    ? "⚠️ SaveIQ Alert: Savings Goal \"" + goal.goalName + "\" is Overdue"
-    : "⏰ SaveIQ Reminder: \"" + goal.goalName + "\" Deadline Approaching (" + goal.daysLeft + " Days Left)";
+    ? "SaveIQ: Goal \"" + goal.goalName + "\" is past deadline"
+    : "SaveIQ Reminder: \"" + goal.goalName + "\" deadline in " + goal.daysLeft + " days";
 
   const headline = isOverdue
-    ? "Your savings deadline has passed, but it's never too late to finish!"
-    : "You're getting closer to your target date. Let's finish strong!";
+    ? "Your savings deadline has passed. Review your pacing to complete this target."
+    : "Your target deadline is approaching. Review your required pacing below.";
 
   const dailySavingsText = goal.daysLeft > 0
-    ? "$" + goal.dailyRequired.toFixed(2) + " per day"
-    : "N/A (Reset deadline or make a catch-up deposit)";
+    ? "$" + goal.dailyRequired.toFixed(2) + " / day"
+    : "Review schedule";
 
   const htmlBody = `
     <!DOCTYPE html>
@@ -777,68 +770,68 @@ function sendDeadlineAlertEmail(goal) {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; margin: 0; padding: 24px; color: #f8fafc; }
-        .card { max-width: 580px; margin: 0 auto; background: #1e293b; border-radius: 16px; border: 1px solid #334155; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .header { background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%); padding: 32px 24px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
-        .header p { margin: 8px 0 0 0; color: #e0f2fe; font-size: 14px; }
-        .content { padding: 28px 24px; }
-        .status-badge { display: inline-block; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; ${isOverdue ? 'background: rgba(239, 68, 68, 0.2); color: #f87171;' : 'background: rgba(245, 158, 11, 0.2); color: #fbbf24;'} }
-        .metric-grid { display: table; width: 100%; margin: 20px 0; border-collapse: separate; border-spacing: 10px; }
-        .metric-cell { display: table-cell; width: 50%; background: #0f172a; padding: 14px; border-radius: 10px; border: 1px solid #334155; text-align: center; }
-        .metric-val { font-size: 20px; font-weight: 700; color: #38bdf8; margin-top: 4px; }
-        .metric-lbl { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
-        .progress-bar-bg { background: #334155; border-radius: 9999px; height: 12px; overflow: hidden; margin: 16px 0 8px 0; }
-        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); width: ${goal.progressPercent}%; border-radius: 9999px; }
-        .footer { background: #0f172a; padding: 20px 24px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #1e293b; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0d13; margin: 0; padding: 32px 16px; color: #f3f4f6; }
+        .card { max-width: 540px; margin: 0 auto; background: #12151f; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+        .header { padding: 24px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .header h1 { margin: 0; font-size: 18px; font-weight: 600; color: #f3f4f6; letter-spacing: -0.01em; }
+        .header p { margin: 6px 0 0 0; color: #9ca3af; font-size: 13px; }
+        .content { padding: 24px; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 14px; ${isOverdue ? 'background: rgba(239, 68, 68, 0.12); color: #f87171;' : 'background: rgba(245, 158, 11, 0.12); color: #fbbf24;'} }
+        .metric-grid { display: table; width: 100%; margin: 18px 0; border-collapse: separate; border-spacing: 8px; }
+        .metric-cell { display: table-cell; width: 50%; background: #0f121a; padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); text-align: left; }
+        .metric-val { font-size: 18px; font-weight: 600; color: #f3f4f6; margin-top: 4px; }
+        .metric-lbl { font-size: 11px; text-transform: uppercase; color: #6b7280; font-weight: 600; letter-spacing: 0.04em; }
+        .progress-bar-bg { background: rgba(255,255,255,0.08); border-radius: 9999px; height: 6px; overflow: hidden; margin: 14px 0 6px 0; }
+        .progress-bar-fill { height: 100%; background: #3b82f6; width: ${goal.progressPercent}%; border-radius: 9999px; }
+        .footer { background: #0b0d13; padding: 16px 24px; font-size: 12px; color: #6b7280; border-top: 1px solid rgba(255,255,255,0.06); }
       </style>
     </head>
     <body>
       <div class="card">
         <div class="header">
-          <h1>SaveIQ Financial Intelligence</h1>
+          <h1>SaveIQ Portfolio Alert</h1>
           <p>${headline}</p>
         </div>
         <div class="content">
-          <div class="status-badge">${isOverdue ? '⚠️ OVERDUE DEADLINE' : '⏳ DEADLINE APPROACHING'}</div>
-          <h2 style="margin: 0 0 8px 0; font-size: 20px; color: #ffffff;">Goal: ${goal.goalName}</h2>
-          <p style="margin: 0; color: #94a3b8; font-size: 14px;">Category: <strong>${goal.purpose}</strong></p>
+          <div class="status-badge">${isOverdue ? 'Overdue Deadline' : 'Deadline Approaching'}</div>
+          <h2 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: #f3f4f6;">${goal.goalName}</h2>
+          <p style="margin: 0; color: #9ca3af; font-size: 13px;">Category: ${goal.purpose}</p>
 
           <div class="progress-bar-bg">
             <div class="progress-bar-fill"></div>
           </div>
-          <p style="text-align: right; margin: 0; font-size: 13px; font-weight: 700; color: #38bdf8;">${goal.progressPercent}% Achieved</p>
+          <p style="text-align: right; margin: 0; font-size: 12px; font-weight: 500; color: #9ca3af;">${goal.progressPercent}% funded</p>
 
           <div class="metric-grid">
             <div class="metric-cell">
-              <div class="metric-lbl">Target Amount</div>
+              <div class="metric-lbl">Target</div>
               <div class="metric-val">$${goal.targetAmount.toFixed(2)}</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-lbl">Saved So Far</div>
-              <div class="metric-val" style="color: #34d399;">$${goal.savedAmount.toFixed(2)}</div>
+              <div class="metric-lbl">Saved</div>
+              <div class="metric-val" style="color: #10b981;">$${goal.savedAmount.toFixed(2)}</div>
             </div>
           </div>
 
           <div class="metric-grid">
             <div class="metric-cell">
-              <div class="metric-lbl">Remaining Balance</div>
-              <div class="metric-val" style="color: #f87171;">$${goal.remainingAmount.toFixed(2)}</div>
+              <div class="metric-lbl">Remaining</div>
+              <div class="metric-val">$${goal.remainingAmount.toFixed(2)}</div>
             </div>
             <div class="metric-cell">
-              <div class="metric-lbl">Days Left</div>
-              <div class="metric-val" style="${isOverdue ? 'color: #ef4444;' : 'color: #fbbf24;'}">${isOverdue ? Math.abs(goal.daysLeft) + 'd Overdue' : goal.daysLeft + ' Days'}</div>
+              <div class="metric-lbl">Timeline</div>
+              <div class="metric-val" style="${isOverdue ? 'color: #f87171;' : 'color: #fbbf24;'}">${isOverdue ? Math.abs(goal.daysLeft) + 'd overdue' : goal.daysLeft + ' days left'}</div>
             </div>
           </div>
 
-          <div style="background: rgba(56, 189, 248, 0.08); border-left: 4px solid #38bdf8; padding: 14px; border-radius: 8px; margin-top: 16px;">
-            <p style="margin: 0; font-size: 13px; color: #cbd5e1; line-height: 1.5;">
-              <strong>💡 Action Plan:</strong> To hit your deadline on <strong>${goal.deadline}</strong>, deposit <strong>${dailySavingsText}</strong> starting today.
+          <div style="background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6; padding: 12px 14px; border-radius: 6px; margin-top: 14px;">
+            <p style="margin: 0; font-size: 13px; color: #d1d5db; line-height: 1.5;">
+              To achieve your goal by <strong>${goal.deadline}</strong>, allocate <strong>${dailySavingsText}</strong> starting today.
             </p>
           </div>
         </div>
         <div class="footer">
-          <p style="margin: 0;">Sent automatically by SaveIQ Automated Audit Trigger • Google Apps Script & Gmail Services</p>
+          <p style="margin: 0;">SaveIQ Scheduled Audit Notification</p>
         </div>
       </div>
     </body>
