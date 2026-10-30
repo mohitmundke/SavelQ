@@ -2,12 +2,13 @@
 SaveIQ – AI Savings Goal Tracker
 FastAPI Backend & Microservices Architecture
 
-Features:
-- RESTful API for Savings Goals CRUD & Financial Analytics
-- Groq Cloud AI Integration (Llama-3.3-70b-versatile)
-- Automated Financial Audit & Deadline Alert Simulation
-- High-Fidelity PDF Financial Report Generation (ReportLab)
-- CORS & Static Web Asset Serving for Standalone Running
+Architectural Components (as defined in System Architecture):
+- Web Frontend (HTML, CSS, JavaScript)
+- FastAPI Backend (Python)
+- Database: PostgreSQL / Supabase with SQLite offline fallback
+- AI Engine: Groq API (Llama-3.3-70B) & OpenAI (GPT-4o-mini)
+- PDF Generation Service: ReportLab Financial Statement Engine
+- Financial Dashboard & Goal Tracking (JSON Response)
 """
 
 import os
@@ -15,54 +16,119 @@ import io
 import json
 import sqlite3
 import datetime
-from typing import Optional, List
+from typing import Optional, List, Tuple, Any
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 # Load Environment Variables from .env
 load_dotenv()
 
-# Initialize Groq Client
+# ==============================================================================
+# AI ENGINE CONFIGURATION (Groq Cloud & OpenAI)
+# ==============================================================================
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-MODEL_NAME = "llama-3.3-70b-versatile"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+GROQ_MODEL = "llama-3.3-70b-versatile"
+OPENAI_MODEL = "gpt-4o-mini"
 
 groq_client = None
 if GROQ_API_KEY:
     try:
         from groq import Groq
         groq_client = Groq(api_key=GROQ_API_KEY)
-    except ImportError:
-        print("[SaveIQ] groq package not installed. Using heuristic/fallback AI engine.")
+    except Exception as e:
+        print(f"[SaveIQ AI] Groq init notice: {e}")
 
-# Database Initialization (SQLite)
+openai_client = None
+if OPENAI_API_KEY:
+    try:
+        from openai import OpenAI
+        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    except Exception as e:
+        print(f"[SaveIQ AI] OpenAI init notice: {e}")
+
+# ==============================================================================
+# DATABASE SERVICE (PostgreSQL / Supabase with SQLite fallback)
+# ==============================================================================
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 DB_PATH = os.path.join(os.path.dirname(__file__), "saveiq.db")
 
-def init_db():
+def get_db_connection() -> Tuple[Any, str]:
+    """Returns database connection and engine type ('postgres' or 'sqlite')."""
+    if DATABASE_URL and ("postgres" in DATABASE_URL or "postgresql" in DATABASE_URL):
+        try:
+            import psycopg2
+            conn = psycopg2.connect(DATABASE_URL)
+            return conn, "postgres"
+        except Exception as e:
+            print(f"[SaveIQ DB] Supabase/PostgreSQL connection failed ({e}). Reverting to SQLite.")
+    
     conn = sqlite3.connect(DB_PATH)
+    return conn, "sqlite"
+
+def execute_db(sql: str, params: tuple = (), fetch: str = "none", commit: bool = False):
+    """Executes a query agnostic to SQLite or PostgreSQL."""
+    conn, engine = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS goals (
-            id TEXT PRIMARY KEY,
-            goal_name TEXT NOT NULL,
-            target_amount REAL NOT NULL,
-            saved_amount REAL NOT NULL DEFAULT 0,
-            deadline TEXT NOT NULL,
-            purpose TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            email TEXT,
-            alert_sent TEXT DEFAULT 'No'
-        )
-    """)
+    if engine == "postgres":
+        sql = sql.replace("?", "%s")
+    
+    cursor.execute(sql, params)
+    data = None
+    if fetch == "all":
+        data = cursor.fetchall()
+    elif fetch == "one":
+        data = cursor.fetchone()
+    
+    if commit:
+        conn.commit()
+    conn.close()
+    return data
+
+def init_db():
+    """Initializes tables in either PostgreSQL / Supabase or SQLite."""
+    conn, engine = get_db_connection()
+    cursor = conn.cursor()
+    if engine == "postgres":
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS goals (
+                id VARCHAR(64) PRIMARY KEY,
+                goal_name TEXT NOT NULL,
+                target_amount DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+                saved_amount DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+                deadline VARCHAR(32) NOT NULL,
+                purpose VARCHAR(64) NOT NULL,
+                created_at VARCHAR(32) NOT NULL,
+                email VARCHAR(255),
+                alert_sent VARCHAR(64) DEFAULT 'No'
+            );
+        """)
+    else:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS goals (
+                id TEXT PRIMARY KEY,
+                goal_name TEXT NOT NULL,
+                target_amount REAL NOT NULL,
+                saved_amount REAL NOT NULL DEFAULT 0,
+                deadline TEXT NOT NULL,
+                purpose TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                email TEXT,
+                alert_sent TEXT DEFAULT 'No'
+            );
+        """)
     conn.commit()
     conn.close()
 
 init_db()
 
-# Pydantic Schemas
+# ==============================================================================
+# PYDANTIC SCHEMAS
+# ==============================================================================
 class GoalCreate(BaseModel):
     goalName: str = Field(..., description="Name of the savings goal")
     targetAmount: float = Field(..., gt=0, description="Target savings amount in dollars")
@@ -76,8 +142,12 @@ class SavingsDeposit(BaseModel):
 
 class AIRequest(BaseModel):
     goal_id: str
+    provider: Optional[str] = "groq" # "groq" or "openai"
+    api_key: Optional[str] = ""
 
-# Helper Functions for Financial Logic
+# ==============================================================================
+# FINANCIAL REASONING & METRICS ENGINE
+# ==============================================================================
 def calculate_goal_metrics(row):
     gid, name, target, saved, deadline_str, purpose, created_at, email, alert_sent = row
     target = max(float(target), 0.0)
@@ -87,7 +157,7 @@ def calculate_goal_metrics(row):
     progress = round((saved / target) * 100, 1) if target > 0 else 0.0
     progress = min(progress, 100.0)
 
-    # Deadline & Days Left
+    # Deadline & Days Left calculation
     try:
         deadline_date = datetime.datetime.strptime(deadline_str[:10], "%Y-%m-%d").date()
         today = datetime.date.today()
@@ -126,14 +196,15 @@ def calculate_goal_metrics(row):
         "weeklyRequired": weekly_req
     }
 
-# Initialize FastAPI Application
+# ==============================================================================
+# FASTAPI APPLICATION & MIDDLEWARE
+# ==============================================================================
 app = FastAPI(
     title="SaveIQ – AI Savings Goal Tracker API",
-    description="High-performance backend for personal savings management, Groq AI recommendations, and PDF reporting.",
-    version="1.0.0"
+    description="Microservices backend implementing AI Engine (OpenAI/Groq), Database (Postgres/SQLite), and PDF Reporting (ReportLab).",
+    version="2.0.0"
 )
 
-# Enable CORS for frontend cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -142,16 +213,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API Routes
+# ==============================================================================
+# API ENDPOINTS: GOALS CRUD
+# ==============================================================================
 @app.get("/api/goals")
 def get_goals():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM goals ORDER BY created_at DESC")
-    rows = cursor.fetchall()
-    conn.close()
-
-    goals = [calculate_goal_metrics(row) for row in rows]
+    rows = execute_db("SELECT * FROM goals ORDER BY created_at DESC", fetch="all")
+    goals = [calculate_goal_metrics(r) for r in (rows or [])]
     return {"success": True, "goals": goals}
 
 @app.post("/api/goals")
@@ -160,37 +228,25 @@ def create_goal(goal: GoalCreate):
     gid = "GID-" + str(uuid.uuid4())[:8].upper()
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
+    execute_db("""
         INSERT INTO goals (id, goal_name, target_amount, saved_amount, deadline, purpose, created_at, email, alert_sent)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (gid, goal.goalName, goal.targetAmount, goal.initialSavings, goal.deadline, goal.purpose, now_str, goal.email, "No"))
-    conn.commit()
-    cursor.execute("SELECT * FROM goals WHERE id = ?", (gid,))
-    row = cursor.fetchone()
-    conn.close()
+    """, (gid, goal.goalName, goal.targetAmount, goal.initialSavings, goal.deadline, goal.purpose, now_str, goal.email, "No"), commit=True)
 
+    row = execute_db("SELECT * FROM goals WHERE id = ?", (gid,), fetch="one")
     return {"success": True, "goal": calculate_goal_metrics(row)}
 
 @app.post("/api/goals/{goal_id}/savings")
 def update_savings(goal_id: str, deposit: SavingsDeposit):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM goals WHERE id = ?", (goal_id,))
-    row = cursor.fetchone()
+    row = execute_db("SELECT * FROM goals WHERE id = ?", (goal_id,), fetch="one")
     if not row:
-        conn.close()
         raise HTTPException(status_code=404, detail="Goal not found")
 
     new_saved = row[3] + deposit.amount
     alert_sent = "Completed" if new_saved >= row[2] else row[8]
 
-    cursor.execute("UPDATE goals SET saved_amount = ?, alert_sent = ? WHERE id = ?", (new_saved, alert_sent, goal_id))
-    conn.commit()
-    cursor.execute("SELECT * FROM goals WHERE id = ?", (goal_id,))
-    updated_row = cursor.fetchone()
-    conn.close()
+    execute_db("UPDATE goals SET saved_amount = ?, alert_sent = ? WHERE id = ?", (new_saved, alert_sent, goal_id), commit=True)
+    updated_row = execute_db("SELECT * FROM goals WHERE id = ?", (goal_id,), fetch="one")
 
     return {
         "success": True,
@@ -200,22 +256,17 @@ def update_savings(goal_id: str, deposit: SavingsDeposit):
 
 @app.delete("/api/goals/{goal_id}")
 def delete_goal(goal_id: str):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
-    conn.commit()
-    conn.close()
+    execute_db("DELETE FROM goals WHERE id = ?", (goal_id,), commit=True)
     return {"success": True, "message": "Goal deleted successfully"}
 
+# ==============================================================================
+# API ENDPOINTS: FINANCIAL DASHBOARD ANALYTICS (JSON RESPONSE)
+# ==============================================================================
 @app.get("/api/dashboard/stats")
 def get_dashboard_stats():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM goals")
-    rows = cursor.fetchall()
-    conn.close()
-
+    rows = execute_db("SELECT * FROM goals", fetch="all") or []
     goals = [calculate_goal_metrics(r) for r in rows]
+
     total_target = sum(g["targetAmount"] for g in goals)
     total_saved = sum(g["savedAmount"] for g in goals)
     total_remaining = max(round(total_target - total_saved, 2), 0.0)
@@ -237,119 +288,125 @@ def get_dashboard_stats():
         "overdueGoals": overdue
     }
 
+# ==============================================================================
+# API ENDPOINTS: AI ENGINE (OpenAI & Groq API Integration)
+# ==============================================================================
 @app.post("/api/ai/insights")
 def get_ai_insights(req: AIRequest):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM goals WHERE id = ?", (req.goal_id,))
-    row = cursor.fetchone()
-    conn.close()
-
+    row = execute_db("SELECT * FROM goals WHERE id = ?", (req.goal_id,), fetch="one")
     if not row:
         raise HTTPException(status_code=404, detail="Goal not found")
 
     goal = calculate_goal_metrics(row)
 
-    # If Groq client is configured and available
-    if groq_client:
-        try:
-            prompt = f"""
-SAVINGS GOAL ANALYSIS:
-- Goal: {goal['goalName']} ({goal['purpose']})
-- Target Amount: ${goal['targetAmount']:.2f}
-- Current Balance: ${goal['savedAmount']:.2f} ({goal['progressPercent']}%)
-- Remaining Amount: ${goal['remainingAmount']:.2f}
-- Target Date: {goal['deadline']} ({goal['daysLeft']} days)
+    prompt = f"""
+SAVINGS TARGET PROFILE:
+- Goal Name: {goal['goalName']} ({goal['purpose']})
+- Target Capital: ${goal['targetAmount']:,.2f}
+- Current Capital: ${goal['savedAmount']:,.2f} ({goal['progressPercent']}%)
+- Remaining Capital: ${goal['remainingAmount']:,.2f}
+- Deadline: {goal['deadline']} ({goal['daysLeft']} days remaining)
 - Status: {goal['status']}
-- Required Pacing: ${goal['dailyRequired']:.2f}/day (${goal['weeklyRequired']:.2f}/week)
+- Required Velocity: ${goal['dailyRequired']:.2f}/day (${goal['weeklyRequired']:.2f}/week)
 
-Provide a sharp, practical financial plan in clean markdown with:
-1. Trajectory & Pacing Review
-2. Milestone Schedule (Weekly contributions)
-3. 3 Expense-Reduction Tactics relevant to {goal['purpose']}
-4. Behavioral Automation Suggestion
+Deliver an executive personal finance strategic plan in clean markdown:
+### 1. Velocity & Pacing Assessment
+Evaluate feasibility based on the timeline and remaining capital.
+
+### 2. Structured Contribution Milestones
+Recommended weekly deposit cadence with an automated transfer schedule.
+
+### 3. High-Impact Expense Levers ({goal['purpose']})
+Three concrete lifestyle or budgetary levers to immediately accelerate this goal.
+
+### 4. Behavioral Discipline Protocol
+Specific friction tactic or automation rule to prevent milestone deviation.
 """
-            chat_completion = groq_client.chat.completions.create(
+
+    # Check for client-provided API key or environment keys
+    active_key = req.api_key or ""
+    provider = (req.provider or "groq").lower()
+
+    # Route 1: OpenAI Engine
+    if provider == "openai" or active_key.startswith("sk-") or (not GROQ_API_KEY and OPENAI_API_KEY):
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=active_key if active_key.startswith("sk-") else OPENAI_API_KEY)
+            res = client.chat.completions.create(
+                model=OPENAI_MODEL,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an executive personal finance advisor. Deliver concise, high-value, practical financial recommendations without conversational filler."
-                    },
+                    {"role": "system", "content": "You are a senior quantitative financial planner. Provide concise, high-value, realistic savings strategies without generic platitudes."},
                     {"role": "user", "content": prompt}
                 ],
-                model=MODEL_NAME,
                 temperature=0.6,
                 max_tokens=900
             )
-            ai_content = chat_completion.choices[0].message.content
             return {
                 "success": True,
                 "isFallback": False,
-                "source": "Groq Llama-3.3-70B",
-                "recommendation": ai_content,
+                "source": f"OpenAI ({OPENAI_MODEL})",
+                "recommendation": res.choices[0].message.content,
                 "goal": goal
             }
         except Exception as e:
-            print("[Groq API Error]", e)
+            print(f"[OpenAI Engine Error] {e}")
 
-    # Heuristic Fallback
-    heuristic = f"""### Progress Summary
+    # Route 2: Groq Cloud Engine (Llama-3.3-70B)
+    if provider == "groq" or active_key.startswith("gsk_") or GROQ_API_KEY:
+        try:
+            from groq import Groq
+            client = Groq(api_key=active_key if active_key.startswith("gsk_") else GROQ_API_KEY)
+            res = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are an executive personal finance advisor. Deliver concise, high-value, practical financial recommendations without conversational filler."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=900
+            )
+            return {
+                "success": True,
+                "isFallback": False,
+                "source": f"Groq Cloud ({GROQ_MODEL})",
+                "recommendation": res.choices[0].message.content,
+                "goal": goal
+            }
+        except Exception as e:
+            print(f"[Groq Engine Error] {e}")
+
+    # Route 3: Deterministic Financial Heuristic Fallback
+    heuristic = f"""### Velocity & Pacing Assessment
 - **Funded:** ${goal['savedAmount']:,.2f} of ${goal['targetAmount']:,.2f} ({goal['progressPercent']}%)
 - **Outstanding:** ${goal['remainingAmount']:,.2f}
-- **Target Deadline:** {goal['deadline']} ({goal['daysLeft']} days remaining)
+- **Horizon:** {goal['deadline']} ({goal['daysLeft']} days remaining)
 
-### Recommended Contribution Schedule
+### Structured Contribution Milestones
 - **Daily Pace:** **${goal['dailyRequired']:.2f} / day**
 - **Weekly Milestone:** **${goal['weeklyRequired']:.2f} / week**
 
-### Optimization Levers ({goal['purpose']})
-1. **Automated Payday Allocation:** Transfer ${goal['weeklyRequired']:.2f} automatically the day compensation arrives.
-2. **Discretionary Buffer Sweep:** Route unspent weekly dining or entertainment buffer directly into this target.
-3. **The 48-Hour Delay:** Pause non-essential purchases exceeding $30 for 48 hours; transfer unspent funds if desire dissipates."""
+### High-Impact Expense Levers ({goal['purpose']})
+1. **Automated Payday Sweep:** Schedule an automated transfer of ${goal['weeklyRequired']:.2f} on each payday before discretionary spending occurs.
+2. **Subscription Audit:** Cancel recurring low-usage digital subscriptions and redirect monthly savings into this goal balance.
+3. **The 48-Hour Purchase Filter:** For discretionary purchases exceeding $50, enforce a 48-hour delay; deposit the unspent amount if the urge passes.
+
+### Behavioral Discipline Protocol
+Lock savings into a dedicated high-yield account with withdrawal friction to eliminate impulsive liquidations."""
 
     return {
         "success": True,
         "isFallback": True,
-        "source": "Financial Planning Engine",
+        "source": "SaveIQ Financial Planning Engine",
         "recommendation": heuristic,
         "goal": goal
     }
 
-@app.post("/api/audit/trigger")
-def run_audit():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM goals")
-    rows = cursor.fetchall()
-
-    today_str = datetime.date.today().strftime("%Y-%m-%d")
-    alerted = []
-
-    for r in rows:
-        g = calculate_goal_metrics(r)
-        if g["status"] != "Completed" and g["email"]:
-            is_approaching = 0 <= g["daysLeft"] <= 7
-            is_overdue = g["status"] == "Overdue"
-            already_alerted = today_str in str(g["alertSent"])
-
-            if (is_approaching or is_overdue) and not already_alerted:
-                # In production with SMTP, send email here
-                cursor.execute("UPDATE goals SET alert_sent = ? WHERE id = ?", (f"Sent on {today_str}", g["id"]))
-                alerted.append(f"Alert queued for {g['email']} regarding '{g['goalName']}' ({g['daysLeft']}d left)")
-
-    conn.commit()
-    conn.close()
-
-    return {
-        "success": True,
-        "processed": len(rows),
-        "alertsSent": len(alerted),
-        "logs": alerted
-    }
-
+# ==============================================================================
+# API ENDPOINTS: PDF GENERATION SERVICE (ReportLab)
+# ==============================================================================
 @app.get("/api/reports/pdf")
 def generate_pdf_report():
-    """Generates a downloadable PDF report matching the architecture diagram."""
+    """Generates an executive PDF financial statement using ReportLab."""
     try:
         from reportlab.lib.pagesizes import letter
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -364,21 +421,24 @@ def generate_pdf_report():
         title_style = ParagraphStyle(
             'TitleStyle',
             parent=styles['Heading1'],
-            fontSize=22,
-            textColor=colors.HexColor('#0284c7'),
+            fontSize=20,
+            textColor=colors.HexColor('#0f172a'),
+            spaceAfter=6
+        )
+
+        sub_style = ParagraphStyle(
+            'SubStyle',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.HexColor('#64748b'),
             spaceAfter=14
         )
 
-        elements.append(Paragraph("SaveIQ – Financial Discipline & Goals Report", title_style))
-        elements.append(Paragraph(f"Generated on {datetime.datetime.now().strftime('%B %d, %Y at %I:%M %p')}", styles['Normal']))
-        elements.append(Spacer(1, 16))
+        elements.append(Paragraph("SaveIQ – Portfolio & Savings Goal Audit Statement", title_style))
+        elements.append(Paragraph(f"Generated on {datetime.datetime.now().strftime('%B %d, %Y at %I:%M %p')} | Source: SaveIQ Microservices", sub_style))
 
-        # Fetch Goals
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM goals")
-        rows = cursor.fetchall()
-        conn.close()
+        # Goals Table
+        rows = execute_db("SELECT * FROM goals", fetch="all") or []
         goals = [calculate_goal_metrics(r) for r in rows]
 
         table_data = [["Goal Name", "Category", "Target ($)", "Saved ($)", "Progress", "Deadline", "Status"]]
@@ -393,9 +453,9 @@ def generate_pdf_report():
                 g['status']
             ])
 
-        t = Table(table_data, colWidths=[120, 90, 65, 65, 55, 75, 65])
+        t = Table(table_data, colWidths=[130, 85, 65, 65, 55, 70, 70])
         t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f172a')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0b0d13')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#38bdf8')),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -412,12 +472,41 @@ def generate_pdf_report():
         return StreamingResponse(
             buffer,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=SaveIQ_Report_{datetime.date.today()}.pdf"}
+            headers={"Content-Disposition": f"attachment; filename=SaveIQ_Statement_{datetime.date.today()}.pdf"}
         )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": f"PDF generation service error: {str(e)}"})
 
-# Serve Static Assets & Main HTML UI
+# ==============================================================================
+# API ENDPOINTS: AUDIT & ALERT SERVICE
+# ==============================================================================
+@app.post("/api/audit/trigger")
+def run_audit():
+    rows = execute_db("SELECT * FROM goals", fetch="all") or []
+    today_str = datetime.date.today().strftime("%Y-%m-%d")
+    alerted = []
+
+    for r in rows:
+        g = calculate_goal_metrics(r)
+        if g["status"] != "Completed" and g["email"]:
+            is_approaching = 0 <= g["daysLeft"] <= 7
+            is_overdue = g["status"] == "Overdue"
+            already_alerted = today_str in str(g["alertSent"])
+
+            if (is_approaching or is_overdue) and not already_alerted:
+                execute_db("UPDATE goals SET alert_sent = ? WHERE id = ?", (f"Sent on {today_str}", g["id"]), commit=True)
+                alerted.append(f"Alert recorded for {g['email']} regarding '{g['goalName']}' ({g['daysLeft']}d left)")
+
+    return {
+        "success": True,
+        "processed": len(rows),
+        "alertsSent": len(alerted),
+        "logs": alerted
+    }
+
+# ==============================================================================
+# STATIC WEB ASSET & UI SERVING
+# ==============================================================================
 static_dir = os.path.dirname(__file__)
 
 @app.get("/styles.css")
@@ -449,8 +538,7 @@ def serve_index():
         index_path = os.path.join(static_dir, name)
         if os.path.exists(index_path):
             with open(index_path, "r", encoding="utf-8") as f:
-                content = f.read()
-                return HTMLResponse(content=content)
+                return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>SaveIQ Backend Running</h1>")
 
 if __name__ == "__main__":

@@ -24,7 +24,9 @@ const AppState = {
   },
   currentGoalForDeposit: null,
   currentGoalForAI: null,
+  aiProvider: localStorage.getItem("saveiq_ai_provider") || "groq",
   groqApiKey: localStorage.getItem("saveiq_groq_key") || "",
+  openaiApiKey: localStorage.getItem("saveiq_openai_key") || "",
   backendMode: "auto"
 };
 
@@ -193,15 +195,21 @@ const BackendBridge = {
     }
 
     if (AppState.backendMode === "fastapi") {
+      const activeKey = AppState.aiProvider === "openai" ? AppState.openaiApiKey : AppState.groqApiKey;
       const res = await fetch("/api/ai/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal_id: goal.id })
+        body: JSON.stringify({
+          goal_id: goal.id,
+          provider: AppState.aiProvider,
+          api_key: activeKey
+        })
       });
       return await res.json();
     }
 
-    const apiKey = AppState.groqApiKey;
+    const isOAI = AppState.aiProvider === "openai";
+    const apiKey = isOAI ? AppState.openaiApiKey : AppState.groqApiKey;
     if (!apiKey) {
       return {
         success: true,
@@ -227,14 +235,19 @@ Provide a sharp, practical financial plan in clean markdown with:
 3. 3 Expense-Reduction Tactics relevant to ${goal.purpose}
 4. Behavioral Automation Suggestion`;
 
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const endpoint = isOAI 
+        ? "https://api.openai.com/v1/chat/completions" 
+        : "https://api.groq.com/openai/v1/chat/completions";
+      const model = isOAI ? "gpt-4o-mini" : "llama-3.3-70b-versatile";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + apiKey
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: model,
           messages: [
             {
               role: "system",
@@ -836,8 +849,18 @@ function parseMarkdownToHtml(md) {
 
 // Settings Modal
 function openSettingsModal() {
-  document.getElementById("groqApiKeyInput").value = AppState.groqApiKey;
-  document.getElementById("activeBackendModeLabel").textContent = AppState.backendMode.toUpperCase();
+  const provEl = document.getElementById("aiProviderSelect");
+  if (provEl) provEl.value = AppState.aiProvider || "groq";
+
+  const groqInput = document.getElementById("groqApiKeyInput");
+  if (groqInput) groqInput.value = AppState.groqApiKey || "";
+
+  const openaiInput = document.getElementById("openaiApiKeyInput");
+  if (openaiInput) openaiInput.value = AppState.openaiApiKey || "";
+
+  const modeEl = document.getElementById("activeBackendModeLabel");
+  if (modeEl) modeEl.textContent = AppState.backendMode.toUpperCase();
+
   document.getElementById("settingsModal").classList.add("active");
 }
 
@@ -846,17 +869,32 @@ function closeSettingsModal() {
 }
 
 function saveSettings() {
-  const key = document.getElementById("groqApiKeyInput").value.trim();
-  AppState.groqApiKey = key;
-  localStorage.setItem("saveiq_groq_key", key);
-
-  if (AppState.backendMode === "gas") {
-    google.script.run
-      .withSuccessHandler(() => showToast("Key saved in Script properties", "success"))
-      .setGroqApiKey(key);
+  const provEl = document.getElementById("aiProviderSelect");
+  if (provEl) {
+    AppState.aiProvider = provEl.value;
+    localStorage.setItem("saveiq_ai_provider", provEl.value);
   }
 
-  showToast("Settings saved", "success");
+  const groqInput = document.getElementById("groqApiKeyInput");
+  if (groqInput) {
+    const key = groqInput.value.trim();
+    AppState.groqApiKey = key;
+    localStorage.setItem("saveiq_groq_key", key);
+    if (AppState.backendMode === "gas") {
+      google.script.run
+        .withSuccessHandler(() => showToast("Groq key saved in Script properties", "success"))
+        .setGroqApiKey(key);
+    }
+  }
+
+  const openaiInput = document.getElementById("openaiApiKeyInput");
+  if (openaiInput) {
+    const oKey = openaiInput.value.trim();
+    AppState.openaiApiKey = oKey;
+    localStorage.setItem("saveiq_openai_key", oKey);
+  }
+
+  showToast("Preferences saved", "success");
   closeSettingsModal();
 }
 
@@ -908,8 +946,23 @@ function exportGoalsCSV() {
   showToast("CSV downloaded", "success");
 }
 
+function downloadPDFReport() {
+  if (AppState.backendMode === "fastapi") {
+    showToast("Generating PDF report via ReportLab service...", "info");
+    const link = document.createElement("a");
+    link.href = "/api/reports/pdf";
+    link.download = `SaveIQ_Statement_${new Date().toISOString().slice(0, 10)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } else {
+    showToast("Opening statement print dialog...", "info");
+    window.print();
+  }
+}
+
 function printFinancialReport() {
-  window.print();
+  downloadPDFReport();
 }
 
 function showToast(message, type = "info") {
