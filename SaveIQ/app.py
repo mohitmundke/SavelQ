@@ -121,6 +121,25 @@ def init_db():
                 alert_sent TEXT DEFAULT 'No'
             );
         """)
+    
+    # Seed default sample goals if database is empty
+    cursor.execute("SELECT COUNT(*) FROM goals;")
+    res = cursor.fetchone()
+    count = res[0] if res else 0
+    if count == 0:
+        sample_goals = [
+            ("GID-DEMO01", "Emergency Reserve Fund (6 Months)", 12000.0, 9600.0, "2026-12-31", "Emergency Fund", "2026-06-15 10:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO02", "M3 Max MacBook Pro & Studio Display", 3500.0, 2800.0, "2026-12-15", "Tech & Gadgets", "2026-08-01 14:20:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO03", "Kyoto & Tokyo Autumn Vacation", 4200.0, 3800.0, "2026-11-20", "Vacation & Travel", "2026-05-10 11:30:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO04", "First Home Down Payment", 45000.0, 27500.0, "2027-08-31", "Home & Real Estate", "2026-01-10 09:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO05", "Index Fund & Dividend Portfolio", 8000.0, 8000.0, "2026-10-15", "Investment & Wealth", "2026-03-01 08:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO06", "Car Major Service & All-Terrain Tires", 1200.0, 750.0, "2026-11-08", "Vehicle & Transport", "2026-09-01 16:45:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO07", "Executive AI & Cloud Architecture Masterclass", 1500.0, 1500.0, "2026-09-30", "Education & Career", "2026-07-01 12:00:00", "user@saveiq.internal", "No"),
+            ("GID-DEMO08", "Home Gym & Wellness Upgrade", 2200.0, 650.0, "2027-02-28", "Health & Wellness", "2026-10-01 15:10:00", "user@saveiq.internal", "No")
+        ]
+        ph = "%s" if engine == "postgres" else "?"
+        cursor.executemany(f"INSERT INTO goals (id, goal_name, target_amount, saved_amount, deadline, purpose, created_at, email, alert_sent) VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph});", sample_goals)
+
     conn.commit()
     conn.close()
 
@@ -139,6 +158,13 @@ class GoalCreate(BaseModel):
 
 class SavingsDeposit(BaseModel):
     amount: float = Field(..., gt=0, description="Deposit contribution amount")
+
+class GoalUpdate(BaseModel):
+    goalName: str = Field(..., description="Name of the savings goal")
+    targetAmount: float = Field(..., gt=0, description="Target savings amount in dollars")
+    deadline: str = Field(..., description="Target completion deadline YYYY-MM-DD")
+    purpose: Optional[str] = Field("General Savings", description="Category or purpose")
+    email: Optional[str] = Field("", description="Alert email address")
 
 class AIRequest(BaseModel):
     goal_id: str
@@ -214,9 +240,27 @@ app.add_middleware(
 )
 
 # ==============================================================================
+# API ENDPOINTS: CONFIG & HEARTBEAT
+# ==============================================================================
+@app.get("/api/config")
+@app.head("/api/config")
+def get_config():
+    key = GROQ_API_KEY
+    masked = (key[:12] + "...") if key else ""
+    return {
+        "success": True,
+        "backend": "fastapi",
+        "mode": "FastAPI Microservices",
+        "groqApiKey": key,
+        "maskedGroqKey": masked,
+        "activeModel": "openai/gpt-oss-120b"
+    }
+
+# ==============================================================================
 # API ENDPOINTS: GOALS CRUD
 # ==============================================================================
 @app.get("/api/goals")
+@app.head("/api/goals")
 def get_goals():
     rows = execute_db("SELECT * FROM goals ORDER BY created_at DESC", fetch="all")
     goals = [calculate_goal_metrics(r) for r in (rows or [])]
@@ -253,6 +297,18 @@ def update_savings(goal_id: str, deposit: SavingsDeposit):
         "message": f"Deposited ${deposit.amount:.2f} successfully!",
         "goal": calculate_goal_metrics(updated_row)
     }
+
+@app.put("/api/goals/{goal_id}")
+def update_goal(goal_id: str, goal: GoalUpdate):
+    execute_db("""
+        UPDATE goals 
+        SET goal_name = ?, target_amount = ?, deadline = ?, purpose = ?, email = ?
+        WHERE id = ?
+    """, (goal.goalName, goal.targetAmount, goal.deadline, goal.purpose, goal.email, goal_id), commit=True)
+    row = execute_db("SELECT * FROM goals WHERE id = ?", (goal_id,), fetch="one")
+    if not row:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    return {"success": True, "goal": calculate_goal_metrics(row)}
 
 @app.delete("/api/goals/{goal_id}")
 def delete_goal(goal_id: str):
@@ -351,27 +407,34 @@ Specific friction tactic or automation rule to prevent milestone deviation.
         except Exception as e:
             print(f"[OpenAI Engine Error] {e}")
 
-    # Route 2: Groq Cloud Engine (Llama-3.3-70B)
+    # Route 2: Groq Cloud Engine
     if provider == "groq" or active_key.startswith("gsk_") or GROQ_API_KEY:
         try:
             from groq import Groq
             client = Groq(api_key=active_key if active_key.startswith("gsk_") else GROQ_API_KEY)
-            res = client.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are an executive personal finance advisor. Deliver concise, high-value, practical financial recommendations without conversational filler."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.6,
-                max_tokens=900
-            )
-            return {
-                "success": True,
-                "isFallback": False,
-                "source": f"Groq Cloud ({GROQ_MODEL})",
-                "recommendation": res.choices[0].message.content,
-                "goal": goal
-            }
+            groq_candidates = ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "qwen/qwen3.8-27b"]
+            for m in groq_candidates:
+                try:
+                    res = client.chat.completions.create(
+                        model=m,
+                        messages=[
+                            {"role": "system", "content": "You are an executive personal finance advisor. Deliver concise, high-value, practical financial recommendations without conversational filler."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.6,
+                        max_tokens=900
+                    )
+                    return {
+                        "success": True,
+                        "isFallback": False,
+                        "source": f"Groq Cloud ({m})",
+                        "recommendation": res.choices[0].message.content,
+                        "goal": goal
+                    }
+                except Exception as model_err:
+                    if "model_not_found" in str(model_err) or "does not exist" in str(model_err):
+                        continue
+                    raise model_err
         except Exception as e:
             print(f"[Groq Engine Error] {e}")
 

@@ -1,35 +1,90 @@
-﻿[
-    {
-        "id":  "GID-DEMO01",
-        "goalName":  "M3 MacBook Pro Setup",
-        "targetAmount":  2400,
-        "savedAmount":  1800,
-        "deadline":  "2026-11-13",
-        "purpose":  "Tech \u0026 Gadgets",
-        "createdAt":  "2026-09-09 21:10:07",
-        "email":  "user@saveiq.internal",
-        "alertSent":  "No"
-    },
-    {
-        "id":  "GID-DEMO02",
-        "goalName":  "Emergency Reserve Fund",
-        "targetAmount":  5000,
-        "savedAmount":  3250,
-        "deadline":  "2026-10-04",
-        "purpose":  "Emergency Fund",
-        "createdAt":  "2026-08-30 21:10:07",
-        "email":  "user@saveiq.internal",
-        "alertSent":  "No"
-    },
-    {
-        "id":  "GID-DEMO03",
-        "goalName":  "Car Maintenance \u0026 Tires",
-        "targetAmount":  800,
-        "savedAmount":  450,
-        "deadline":  "2026-09-26",
-        "purpose":  "Vehicle \u0026 Transport",
-        "createdAt":  "2026-08-20 21:10:07",
-        "email":  "user@saveiq.internal",
-        "alertSent":  "No"
-    }
+[
+  {
+    "id": "GID-DEMO01",
+    "goalName": "Emergency Reserve Fund (6 Months)",
+    "targetAmount": 12000,
+    "savedAmount": 9600,
+    "deadline": "2026-12-31",
+    "purpose": "Emergency Fund",
+    "createdAt": "2026-06-15 10:00:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO02",
+    "goalName": "M3 Max MacBook Pro & Studio Display",
+    "targetAmount": 3500,
+    "savedAmount": 2800,
+    "deadline": "2026-12-15",
+    "purpose": "Tech & Gadgets",
+    "createdAt": "2026-08-01 14:20:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO03",
+    "goalName": "Kyoto & Tokyo Autumn Vacation",
+    "targetAmount": 4200,
+    "savedAmount": 3800,
+    "deadline": "2026-11-20",
+    "purpose": "Vacation & Travel",
+    "createdAt": "2026-05-10 11:30:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO04",
+    "goalName": "First Home Down Payment",
+    "targetAmount": 45000,
+    "savedAmount": 27500,
+    "deadline": "2027-08-31",
+    "purpose": "Home & Real Estate",
+    "createdAt": "2026-01-10 09:00:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO05",
+    "goalName": "Index Fund & Dividend Portfolio",
+    "targetAmount": 8000,
+    "savedAmount": 8000,
+    "deadline": "2026-10-15",
+    "purpose": "Investment & Wealth",
+    "createdAt": "2026-03-01 08:00:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO06",
+    "goalName": "Car Major Service & All-Terrain Tires",
+    "targetAmount": 1200,
+    "savedAmount": 750,
+    "deadline": "2026-11-08",
+    "purpose": "Vehicle & Transport",
+    "createdAt": "2026-09-01 16:45:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO07",
+    "goalName": "Executive AI & Cloud Architecture Masterclass",
+    "targetAmount": 1500,
+    "savedAmount": 1500,
+    "deadline": "2026-09-30",
+    "purpose": "Education & Career",
+    "createdAt": "2026-07-01 12:00:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  },
+  {
+    "id": "GID-DEMO08",
+    "goalName": "Home Gym & Wellness Upgrade",
+    "targetAmount": 2200,
+    "savedAmount": 650,
+    "deadline": "2027-02-28",
+    "purpose": "Health & Wellness",
+    "createdAt": "2026-10-01 15:10:00",
+    "email": "user@saveiq.internal",
+    "alertSent": "No"
+  }
 ]
